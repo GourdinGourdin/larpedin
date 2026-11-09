@@ -15,7 +15,11 @@
     "bench:queens": "node scripts/bench-queens.ts",
     "bench:patches": "node scripts/bench-patches.ts",
     "bench:wend": "node scripts/bench-wend.ts",
-    "dict:wend": "node scripts/make-wend-dict.mjs"
+    "dict:wend": "node scripts/make-wend-dict.mjs",
+    "site:build": "node scripts/package-site.mjs",
+    "site:serve": "node site/dev/serve.mjs",
+    "site:shots": "node site/dev/screenshots.mjs",
+    "site:og": "node site/dev/render-og.mjs"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +28,7 @@
     "@types/node": "^22.20.5",
     "an-array-of-english-words": "^2.0.0",
     "esbuild": "^0.25.10",
+    "playwright-core": "^1.65.0",
     "typescript": "^5.9.3",
     "wordlist-english": "^1.2.1"
   },

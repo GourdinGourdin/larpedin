@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linkedin Larp: solve LinkedIn's daily puzzles in milliseconds</title>
+  <meta name="description" content="Linkedin Larp is a free, open-source Chrome extension that reads, solves and plays LinkedIn's daily puzzle games (Zip, Queens, Tango, Patches, Wend) in milliseconds. No AI, no screenshots, no data sent anywhere.">
+  <meta name="theme-color" content="#FBF7EF">
+  <meta name="color-scheme" content="light">
+  <!-- REPLACE_ME: set the deployed URL here and in og:url / og:image / twitter:image / JSON-LD below -->
+  <link rel="canonical" href="https://REPLACE_ME.github.io/linkedin-larp/">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/icon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Linkedin Larp">
+  <meta property="og:title" content="Linkedin Larp: LinkedIn's daily puzzles, solved in milliseconds">
+  <meta property="og:description" content="A free Chrome extension that reads, solves and plays Zip, Queens, Tango, Patches and Wend. Exact solvers, no AI, no data sent anywhere.">
+  <meta property="og:url" content="https://REPLACE_ME.github.io/linkedin-larp/">
+  <meta property="og:image" content="https://REPLACE_ME.github.io/linkedin-larp/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Linkedin Larp: a puzzle grid with a path drawn through it, and the words Read, Solve, Play.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Linkedin Larp: LinkedIn's daily puzzles, solved in milliseconds">
+  <meta name="twitter:description" content="Free Chrome extension for Zip, Queens, Tango, Patches and Wend. Exact solvers, no AI, no tracking.">
+  <meta name="twitter:image" content="https://REPLACE_ME.github.io/linkedin-larp/assets/og.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Linkedin Larp",
+    "applicationCategory": "BrowserApplication",
+    "operatingSystem": "Google Chrome (desktop)",
+    "description": "A Chrome extension that reads, solves and plays LinkedIn's daily puzzle games in milliseconds.",
+    "url": "https://REPLACE_ME.github.io/linkedin-larp/",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top" aria-label="Linkedin Larp, back to top">
+        <img src="assets/icon.svg" width="32" height="32" alt="">
+        <span>Linkedin Larp</span>
+      </a>
+      <nav aria-label="Sections">
+        <ul class="nav-list">
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#games">Games</a></li>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-small" href="downloads/linkedin-larp.zip" download data-download>Download</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="wrap hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="stripe" aria-hidden="true"></span>Free Chrome extension</p>
+          <h1 id="hero-title">LinkedIn's daily puzzles, <em>solved in milliseconds.</em></h1>
+          <p class="lede">Linkedin Larp reads the puzzle straight from the page, solves it with an exact search, and plays the moves for you. Zip, Queens, Tango, Patches and Wend. No AI, no guessing, no data sent anywhere.</p>
+          <div class="cta-row">
+            <a class="btn btn-big" href="downloads/linkedin-larp.zip" download data-download>
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Download for Chrome
+            </a>
+            <a class="btn btn-ghost" href="#install">How to install</a>
+          </div>
+          <p class="meta" aria-live="polite"><span data-version>Free, open source</span> · <a href="https://github.com/REPLACE_ME/linkedin-larp">Source on GitHub</a></p>
+          <p class="browser-hint" data-browser-hint hidden></p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-card">
+            <div class="mini-board" data-hero-board></div>
+            <div class="hero-timing">
+              <span><b>read</b> 0.1 ms</span>
+              <span><b>solve</b> 0.2 ms</span>
+              <span><b>play</b> done</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <p class="kicker">How it works</p>
+        <h2 id="how-title">Read → Solve → Play</h2>
+        <p class="section-lede">Three steps, every time. The board below is a tiny Zip-style puzzle, and the search you see is a real backtracking search (a simpler cousin of the extension's solvers) running in your browser, slowed down so you can watch it.</p>
+
+        <div class="demo" data-demo>
+          <div class="demo-board">
+            <svg class="board-svg" viewBox="0 0 300 300" role="img" aria-labelledby="demo-svg-title" data-demo-svg>
+              <title id="demo-svg-title">A 5 by 5 puzzle grid. A path is found that visits every cell and the numbered dots in order.</title>
+            </svg>
+            <div class="demo-controls">
+              <button type="button" class="btn-icon" data-demo-toggle aria-pressed="false">
+                <span data-demo-toggle-label>Pause</span>
+              </button>
+              <span class="demo-readout" data-demo-readout aria-live="off">ready</span>
+            </div>
+          </div>
+
+          <ol class="steps" data-demo-steps>
+            <li class="step" data-step="0">
+              <button type="button" class="step-btn" data-step-btn="0">
+                <span class="step-num">1</span>
+                <span class="step-body">
+                  <span class="step-title">Read</span>
+                  <span class="step-text">Pulls the puzzle data straight out of the page: grid size, numbers, regions, clues, walls. No screenshots, no OCR, so nothing to misread.</span>
+                </span>
+              </button>
+            </li>
+            <li class="step" data-step="1">
+              <button type="button" class="step-btn" data-step-btn="1">
+                <span class="step-num">2</span>
+                <span class="step-body">
+                  <span class="step-title">Solve</span>
+                  <span class="step-text">Exact search with constraint propagation. No AI or machine learning and no guessing: the answer is proven correct. Typically well under a millisecond, a few ms in the worst cases.</span>
+                </span>
+              </button>
+            </li>
+            <li class="step" data-step="2">
+              <button type="button" class="step-btn" data-step-btn="2">
+                <span class="step-num">3</span>
+                <span class="step-body">
+                  <span class="step-title">Play</span>
+                  <span class="step-text">Enters the answer with simulated mouse input inside the page: drags for paths and rectangles, taps for cells. You watch the board fill in.</span>
+                </span>
+              </button>
+            </li>
+          </ol>
+        </div>
+        <p class="demo-note" data-demo-bench>On your machine, this demo puzzle solves in <b data-demo-bench-ms>…</b> (averaged over 200 runs).</p>
+      </div>
+    </section>
+
+    <!-- ============ GAMES ============ -->
+    <section class="section section-alt" id="games" aria-labelledby="games-title">
+      <div class="wrap">
+        <p class="kicker">Supported games</p>
+        <h2 id="games-title">All five daily puzzles</h2>
+        <p class="section-lede">Each game gets its own solver, written for that game's rules.</p>
+        <ul class="games">
+          <li class="game" style="--g: var(--zip); --g-ink: var(--zip-ink); --g-soft: var(--zip-soft)">
+            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
+              <path d="M12 12H36V24H12V36H36" fill="none" stroke="var(--g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="5" fill="var(--ink)"/><circle cx="36" cy="36" r="5" fill="var(--ink)"/>
+            </svg>
+            <h3>Zip</h3>
+            <p>One path through every cell, hitting the numbered dots in order.</p>
+          </li>
+          <li class="game" style="--g: var(--queens); --g-ink: var(--queens-ink); --g-soft: var(--queens-soft)">
+            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
+              <path d="M6 6h20v14H6zM26 6h16v22H26zM6 20h20v22H6zM26 28h16v14H26z" fill="none" stroke="var(--g)" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="16" cy="13" r="4" fill="var(--ink)"/><circle cx="34" cy="20" r="4" fill="var(--ink)"/><circle cx="13" cy="34" r="4" fill="var(--ink)"/>
+            </svg>
+            <h3>Queens</h3>
+            <p>One queen per row, column and colour region, and no two may touch.</p>
+          </li>
+          <li class="game" style="--g: var(--tango); --g-ink: var(--tango-ink); --g-soft: var(--tango-soft)">
+            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
+              <circle cx="15" cy="15" r="6" fill="var(--g)"/><circle cx="33" cy="15" r="6" fill="none" stroke="var(--ink)" stroke-width="2.5"/>
+              <circle cx="15" cy="33" r="6" fill="none" stroke="var(--ink)" stroke-width="2.5"/><circle cx="33" cy="33" r="6" fill="var(--g)"/>
+              <path d="M22 13.5h4M22 16.5h4" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <h3>Tango</h3>
+            <p>Fill the grid with two symbols: balanced rows and columns, no three in a row, and every = / × clue respected.</p>
+          </li>
+          <li class="game" style="--g: var(--patches); --g-ink: var(--patches-ink); --g-soft: var(--patches-soft)">
+            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
+              <rect x="7" y="7" width="20" height="13" rx="3" fill="var(--g)"/>
+              <rect x="30" y="7" width="11" height="34" rx="3" fill="none" stroke="var(--ink)" stroke-width="2.5"/>
+              <rect x="7" y="23" width="20" height="18" rx="3" fill="none" stroke="var(--g-ink)" stroke-width="2.5"/>
+            </svg>
+            <h3>Patches</h3>
+            <p>Split the grid into rectangles, each matching the shape and size of its single clue.</p>
+          </li>
+          <li class="game" style="--g: var(--wend); --g-ink: var(--wend-ink); --g-soft: var(--wend-soft)">
+            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
+              <path d="M10 38C10 24 22 30 22 18S36 8 38 14 30 30 38 38" fill="none" stroke="var(--g)" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="10" cy="38" r="4" fill="var(--ink)"/>
+            </svg>
+            <h3>Wend</h3>
+            <p>LinkedIn's newest daily puzzle, handled by the same read, solve and play pipeline.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ INSTALL ============ -->
+    <section class="section" id="install" aria-labelledby="install-title">
+      <div class="wrap">
+        <p class="kicker">Install</p>
+        <h2 id="install-title">Set up in about a minute</h2>
+        <p class="section-lede">Linkedin Larp isn't on the Chrome Web Store, so you load it yourself. It's the same thing developers do every day, and you can read every line of code first.</p>
+
+        <div class="notice" role="note">
+          <strong>Desktop Chrome only.</strong>
+          Chrome on phones and tablets can't run extensions. Other Chromium browsers (Edge, Brave, Arc, Opera) have the same "Load unpacked" option but aren't tested.
+          <span class="browser-hint inline" data-browser-hint hidden></span>
+        </div>
+
+        <ol class="install-steps">
+          <li>
+            <h3>Download the zip</h3>
+            <p><a href="downloads/linkedin-larp.zip" download data-download>linkedin-larp.zip</a> <span class="muted" data-version-inline></span></p>
+          </li>
+          <li>
+            <h3>Unzip it</h3>
+            <p>Double-click it on a Mac, or right-click and choose <b>Extract All</b> on Windows. You'll get a folder called <code>linkedin-larp</code>. Put it somewhere you'll keep it: Chrome loads the extension from that folder.</p>
+          </li>
+          <li>
+            <h3>Open the extensions page</h3>
+            <p>Type <code>chrome://extensions</code> in the address bar and press Enter. Web pages aren't allowed to link there, so copy it:</p>
+            <p><button type="button" class="btn btn-copy" data-copy="chrome://extensions"><span data-copy-label>Copy chrome://extensions</span></button></p>
+          </li>
+          <li>
+            <h3>Turn on Developer mode</h3>
+            <p>Flip the <b>Developer mode</b> switch in the top-right corner of that page.</p>
+          </li>
+          <li>
+            <h3>Click "Load unpacked"</h3>
+            <p>Choose the <code>linkedin-larp</code> folder, the one that contains <code>manifest.json</code>. The extension appears in the list.</p>
+          </li>
+          <li>
+            <h3>Open a LinkedIn game</h3>
+            <p>A small panel appears in the bottom-left corner of the game page. Press <kbd>Alt</kbd>+<kbd>S</kbd> (<kbd>Option</kbd>+<kbd>S</kbd> on a Mac) or click <b>Solve</b>.</p>
+          </li>
+        </ol>
+
+        <details class="more">
+          <summary>Updating, removing, or using Tampermonkey instead</summary>
+          <div class="more-body">
+            <p><b>Update:</b> download the new zip, replace the old folder's contents, then click the reload arrow on the Linkedin Larp card in <code>chrome://extensions</code>.</p>
+            <p><b>Remove:</b> click <b>Remove</b> on the card in <code>chrome://extensions</code>, then delete the folder.</p>
+            <p><b>Tampermonkey:</b> if you already use the Tampermonkey extension, you can install the <a href="downloads/linkedin-larp.user.js" data-userscript>userscript version</a> instead. It runs the same code.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ============ USAGE ============ -->
+    <section class="section section-alt" id="usage" aria-labelledby="usage-title">
+      <div class="wrap usage">
+        <div>
+          <p class="kicker">Using it</p>
+          <h2 id="usage-title">One shortcut, one small panel</h2>
+          <dl class="features">
+            <div>
+              <dt><kbd>Alt</kbd>+<kbd>S</kbd></dt>
+              <dd>Solve the puzzle on screen. On a Mac it's <kbd>Option</kbd>+<kbd>S</kbd>.</dd>
+            </div>
+            <div>
+              <dt>Timing panel</dt>
+              <dd>Shows how long each step took: read, solve and input, in milliseconds.</dd>
+            </div>
+            <div>
+              <dt>Auto-solve</dt>
+              <dd>Optional. Tick <b>auto</b> and each new, unsolved board is solved as soon as it appears.</dd>
+            </div>
+            <div>
+              <dt>Puzzle archive</dt>
+              <dd>Every puzzle you open is saved in your browser. <b>Export</b> downloads them all as a JSON file.</dd>
+            </div>
+          </dl>
+        </div>
+        <figure class="panel-mock" aria-label="Example of the in-page panel">
+          <div class="panel-ui">
+            <div class="panel-row">
+              <b>Solver</b>
+              <span class="pbtn">Solve (Alt+S)</span>
+              <span class="pchk"><span class="box" aria-hidden="true">✓</span> auto</span>
+              <span class="pbtn">Export</span>
+            </div>
+            <div class="panel-out">queens (hotkey): read 0.1 ms · solve 0.0 ms · input 41.8 ms · total 41.9 ms</div>
+          </div>
+          <figcaption>The panel sits in the bottom-left corner of game pages. Entering the moves takes longest, because the game needs time to register each one.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="wrap narrow">
+        <p class="kicker">FAQ</p>
+        <h2 id="faq-title">Honest answers</h2>
+
+        <div class="faq">
+          <details>
+            <summary>Is this made by LinkedIn?</summary>
+            <p>No. Linkedin Larp is an independent fan project. It is not affiliated with, endorsed by, or sponsored by LinkedIn or Microsoft. "LinkedIn", "Zip", "Queens", "Tango", "Patches" and "Wend" belong to their owners and are used here only to say what the extension works with.</p>
+          </details>
+          <details>
+            <summary>Can using it get my account in trouble?</summary>
+            <p>Possibly. LinkedIn's User Agreement restricts automated tools on its site, and using one could put your account at risk. Use it at your own risk, ideally just for fun or to learn how puzzle solvers work. The extension doesn't hide what it does: it's your choice when and whether to press Solve.</p>
+          </details>
+          <details>
+            <summary>What does it read, and does it send my data anywhere?</summary>
+            <p>It sends nothing anywhere. We checked the code, and here's exactly what it does:</p>
+            <ul>
+              <li>It only runs on <code>www.linkedin.com</code>, and does nothing unless the address is one of the game pages.</li>
+              <li>On a game page it reads the puzzle grid and nothing else: no profile, feed, messages or contacts.</li>
+              <li>It contains no network code at all: no <code>fetch</code>, <code>XMLHttpRequest</code>, WebSocket or beacon calls, no analytics, no remote scripts.</li>
+              <li>It asks Chrome for no extra permissions and has no background process.</li>
+              <li>Your settings and puzzle archive are saved in the page's own local storage on your computer. <b>Export</b> saves a file to your computer; it doesn't upload it.</li>
+            </ul>
+            <p>Don't take our word for it: <a href="https://github.com/REPLACE_ME/linkedin-larp">the source is public</a>, and it's small enough to read in one sitting.</p>
+          </details>
+          <details>
+            <summary>Does it use AI?</summary>
+            <p>No. Each game has a hand-written exact solver: a search that tries possibilities and uses the puzzle's rules to rule most of them out early (constraint propagation). If there's an answer it finds it, and the answer is always correct. That's why it takes well under a millisecond on most puzzles instead of seconds.</p>
+          </details>
+          <details>
+            <summary>Why isn't it on the Chrome Web Store?</summary>
+            <p>It's a small hobby project, and automating another site's games isn't the kind of thing the Web Store is for. Loading it yourself takes about a minute, and you get exactly the code you can read on GitHub.</p>
+          </details>
+          <details>
+            <summary>Does it work in Firefox, Safari or on my phone?</summary>
+            <p>It's built and tested for desktop Chrome. Phone browsers can't run it. There's also a userscript version for the Tampermonkey extension, which may work in other desktop browsers, but that isn't tested.</p>
+          </details>
+          <details>
+            <summary>It stopped working. What now?</summary>
+            <p>LinkedIn can change its game pages at any time, which can break reading or playing. Check GitHub for a newer version, or open an issue there with the message shown in the panel.</p>
+          </details>
+          <details>
+            <summary>Is it free?</summary>
+            <p>Yes. It's free and open source, with no accounts, ads or tracking.</p>
+          </details>
+          <details>
+            <summary>Why "Larp"?</summary>
+            <p>Because posting a 3-second Queens time is live-action role-playing as someone who's very good at Queens. Be nice about it.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section class="final" aria-labelledby="final-title">
+      <div class="wrap final-inner">
+        <h2 id="final-title">Ready to larp?</h2>
+        <a class="btn btn-big btn-invert" href="downloads/linkedin-larp.zip" download data-download>Download Linkedin Larp</a>
+        <p class="meta"><span data-version>Free, open source</span></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div>
+        <p class="brand footer-brand"><img src="assets/icon.svg" width="24" height="24" alt=""> Linkedin Larp</p>
+        <p class="fine">Not affiliated with, endorsed by, or sponsored by LinkedIn Corporation or Microsoft. LinkedIn and the names of its games are trademarks of their respective owners. Automating LinkedIn may break its User Agreement; use at your own risk. Provided as is, without warranty.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="https://github.com/REPLACE_ME/linkedin-larp">Source code</a></li>
+        <li><a href="https://github.com/REPLACE_ME/linkedin-larp/issues">Report an issue</a></li>
+        <li><a href="#faq">Privacy &amp; FAQ</a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>

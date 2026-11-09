@@ -1,0 +1,68 @@
+// Builds the extension and packages it for the static site.
+//
+//   node scripts/package-site.mjs          (or: npm run site:build)
+//
+// 1. runs `npm run build` (writes dist/extension/ and dist/*.user.js)
+// 2. zips dist/extension/ into site/downloads/linkedin-larp.zip, inside a
+//    top-level "linkedin-larp/" folder so unzipping gives one folder to load
+// 3. copies the userscript to site/downloads/linkedin-larp.user.js
+// 4. writes site/downloads/latest.json { name, version, file, size, sha256, ... }
+//    which the page reads to show "v1.0.0 · 45 KB".
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const extDir = join(root, 'dist', 'extension');
+const outDir = join(root, 'site', 'downloads');
+const ZIP = 'linkedin-larp.zip';
+const USERSCRIPT = 'linkedin-larp.user.js';
+const FOLDER = 'linkedin-larp';
+
+const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', cwd: root, ...opts });
+
+if (!process.argv.includes('--skip-build')) run('npm', ['run', 'build']);
+
+if (!existsSync(join(extDir, 'manifest.json'))) {
+  console.error(`package-site: ${extDir}/manifest.json not found. Did the build fail?`);
+  process.exit(1);
+}
+const manifest = JSON.parse(readFileSync(join(extDir, 'manifest.json'), 'utf8'));
+
+mkdirSync(outDir, { recursive: true });
+const zipPath = join(outDir, ZIP);
+rmSync(zipPath, { force: true });
+
+// Stage a copy under a stable folder name, then zip it (-X: no extra attrs, -q: quiet).
+const stage = mkdtempSync(join(tmpdir(), 'larp-'));
+try {
+  cpSync(extDir, join(stage, FOLDER), { recursive: true });
+  run('zip', ['-r', '-X', '-q', zipPath, FOLDER], { cwd: stage });
+} finally {
+  rmSync(stage, { recursive: true, force: true });
+}
+
+// Userscript (optional; the build names it, so pick whatever *.user.js it produced).
+const userscripts = readdirSync(join(root, 'dist')).filter((f) => f.endsWith('.user.js'));
+let userscript = null;
+if (userscripts.length) {
+  cpSync(join(root, 'dist', userscripts[0]), join(outDir, USERSCRIPT));
+  userscript = { file: USERSCRIPT, size: statSync(join(outDir, USERSCRIPT)).size };
+}
+
+const buf = readFileSync(zipPath);
+const latest = {
+  name: 'Linkedin Larp',
+  version: manifest.version,
+  file: ZIP,
+  size: buf.length,
+  sha256: createHash('sha256').update(buf).digest('hex'),
+  userscript,
+  built: new Date().toISOString(),
+};
+writeFileSync(join(outDir, 'latest.json'), JSON.stringify(latest, null, 2) + '\n');
+
+console.log(`package-site: site/downloads/${ZIP} v${latest.version} ${(latest.size / 1024).toFixed(1)} KB sha256 ${latest.sha256.slice(0, 12)}…`);
