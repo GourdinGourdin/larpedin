@@ -1,0 +1,24 @@
+{
+  "name": "linkedin-games",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node --test test/solvers.test.ts",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc",
+    "bench": "node scripts/bench-zip.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.25.10",
+    "typescript": "^5.9.3"
+  },
+  "type": "module"
+}
