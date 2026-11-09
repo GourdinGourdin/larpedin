@@ -13,15 +13,19 @@
     "bench": "node scripts/bench-zip.ts",
     "bench:tango": "node scripts/bench-tango.ts",
     "bench:queens": "node scripts/bench-queens.ts",
-    "bench:patches": "node scripts/bench-patches.ts"
+    "bench:patches": "node scripts/bench-patches.ts",
+    "bench:wend": "node scripts/bench-wend.ts",
+    "dict:wend": "node scripts/make-wend-dict.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.20.5",
+    "an-array-of-english-words": "^2.0.0",
     "esbuild": "^0.25.10",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wordlist-english": "^1.2.1"
   },
   "type": "module"
 }

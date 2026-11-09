@@ -21,5 +21,12 @@
     "rows": 6,
     "cols": 6,
     "clues": [[2, "SQUARE", 9], [10, "SQUARE", 0], [12, "VERTICAL_RECT", 0], [23, "VERTICAL_RECT", 0], [25, "SQUARE", 9], [33, "VERTICAL_RECT", 0]]
+  },
+  "wend": {
+    "rows": 5,
+    "cols": 5,
+    "letters": ["A", "", "R", "E", "C", "C", "P", "T", "", "E", "C", "E", "T", "P", "I", "D", "", "T", "P", "A", "N", "E", "R", "", "Z"],
+    "lengths": [3, 5, 6, 7],
+    "solution": [[24, 19, 18], [17, 22, 21, 20, 15], [0, 5, 10, 11, 6, 7], [2, 3, 4, 9, 14, 13, 12]]
   }
 }

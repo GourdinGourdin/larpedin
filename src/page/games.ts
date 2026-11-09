@@ -6,8 +6,10 @@ import { solveZip, type ZipPuzzle, type WallDir } from '../solvers/zip.ts';
 import { solveQueens, type QueensPuzzle } from '../solvers/queens.ts';
 import { solveTango, type TangoPuzzle } from '../solvers/tango.ts';
 import { solvePatches, parseShape, type PatchesPuzzle } from '../solvers/patches.ts';
+import { solveWend, checkWend, wendWords, type WendPuzzle } from '../solvers/wend.ts';
+import { wendDict } from '../data/wend-dict.ts';
 
-export type GameId = 'zip' | 'queens' | 'tango' | 'patches';
+export type GameId = 'zip' | 'queens' | 'tango' | 'patches' | 'wend';
 
 export interface Game<P, S> {
   read(grid: HTMLElement): P;
@@ -421,9 +423,203 @@ export const patches: Game<PatchesPuzzle, [number, number, number, number][]> = 
   },
 };
 
-export const GAMES: Record<GameId, Game<any, any>> = { zip, queens, tango, patches };
+// ---------- wend ----------
+// Read (seen on the live page 2026-11-09): the word-list component
+// ([data-testid="wend-word-list"], props up its fiber) holds `puzzleLetters`
+// (row-major, '' = hole), `solutionWords` [{sequencingIndex}] and `guesses`;
+// slots `wend-word-list-slot-<word>-<letter>` give the word lengths. Fallbacks:
+// cell `letter` props, numbers in the instruction text.
+// Play (NOT verified live): one drag per word through every cell (same shared
+// grid as Zip), then check the word's cells for `isLocked` / `cell-#-locked-check`.
+// If a word does not lock, try Enter per cell, Space per cell, then taps; the
+// input that worked is remembered in localStorage['lgs-wend-input'].
+
+export interface WendPagePuzzle extends WendPuzzle {
+  /** LinkedIn's own answer (solutionWords[].sequencingIndex), when readable */
+  pageSolution?: number[][];
+}
+
+const WEND_LIST_SEL = '[data-testid="wend-word-list"]';
+
+/** First props object up the fiber chain of `el` (fiber and alternate) that passes `pred`. */
+function wendFindProps(el: Element | null, pred: (p: any) => boolean, depth = 8): any {
+  if (!el) return null;
+  const k = Object.keys(el).find((x) => x.startsWith('__reactFiber'));
+  let f = k ? (el as any)[k] : null;
+  for (let i = 0; f && i < depth; i++, f = f.return) {
+    for (const x of [f, f.alternate]) {
+      const p = x?.memoizedProps;
+      if (p && typeof p === 'object' && pred(p)) return p;
+    }
+  }
+  return null;
+}
+
+const wendTile = (x: unknown) => (typeof x === 'string' ? x.trim().toUpperCase() : '');
+const wendIsPath = (x: unknown): x is number[] =>
+  Array.isArray(x) && x.length > 0 && x.every((c) => Number.isInteger(c));
+const wendKey = (ps: number[][]) => ps.map((x) => x.join()).sort().join('|');
+
+/** Word lengths from the slots: testids wend-word-list-slot-<word>-<letter>. */
+function wendSlotLengths(): number[] {
+  const len: number[] = [];
+  for (const el of document.querySelectorAll('[data-testid^="wend-word-list-slot-"]')) {
+    const m = el.getAttribute('data-testid')!.match(/^wend-word-list-slot-(\d+)-(\d+)$/);
+    if (m) len[+m[1]] = Math.max(len[+m[1]] ?? 0, +m[2] + 1);
+  }
+  return len.filter((x) => x > 0);
+}
+
+/** Lengths from the rules text ("Find 4 hidden words of 3, 5, 6 and 7 letters"). */
+function wendTextLengths(): number[] {
+  const text = document.querySelector('[data-testid="wend-instructions"]')?.textContent ?? '';
+  const nums = (text.match(/\d+/g) ?? []).map(Number);
+  return nums.length >= 2 && nums[0] === nums.length - 1 ? nums.slice(1) : nums;
+}
+
+export const wend: Game<WendPagePuzzle, number[][]> = {
+  read(grid) {
+    const cells = getCells(grid);
+    const props = cells.map((c) => { try { return cellComponentProps(c) ?? {}; } catch { return {}; } });
+    const lp = wendFindProps(document.querySelector(WEND_LIST_SEL),
+      (p) => Array.isArray(p.puzzleLetters) || Array.isArray(p.solutionWords));
+
+    // size: cell props, then the grid's props, then a square
+    const withDims = props.find((p) => typeof p.gridRows === 'number' && typeof p.gridCols === 'number');
+    let { rows, cols } = withDims ? { rows: withDims.gridRows, cols: withDims.gridCols }
+      : gridDims(grid) ?? { rows: square(cells), cols: square(cells) };
+
+    // letters: the word list's puzzleLetters, else each cell's `letter`
+    let letters: string[];
+    if (Array.isArray(lp?.puzzleLetters) && lp.puzzleLetters.length === cells.length) {
+      letters = lp.puzzleLetters.map(wendTile);
+    } else {
+      letters = new Array(cells.length).fill('');
+      props.forEach((p, i) => {
+        const idx = Number.isInteger(p.idx) ? p.idx : i;
+        if (idx >= 0 && idx < letters.length) letters[idx] = wendTile(p.letter);
+      });
+    }
+    if (rows * cols !== letters.length) rows = cols = square(letters);
+
+    const pageSolution = Array.isArray(lp?.solutionWords)
+      ? lp.solutionWords.map((w: any) => w?.sequencingIndex).filter(wendIsPath) as number[][]
+      : [];
+
+    // lengths: first source whose total matches the letter count
+    const letterCount = letters.filter(Boolean).length;
+    const sources = [wendSlotLengths(), pageSolution.map((s) => s.length), wendTextLengths()];
+    const lengths = sources.find((ls) => ls.length && ls.reduce((a, b) => a + b, 0) === letterCount)
+      ?? sources.find((ls) => ls.length) ?? [];
+
+    const p: WendPagePuzzle = { rows, cols, letters, lengths };
+    if (pageSolution.length) p.pageSolution = pageSolution;
+    return p;
+  },
+
+  solve(p) {
+    const page = p.pageSolution && checkWend(p, p.pageSolution) ? p.pageSolution : null;
+    let s: number[][] | null = null;
+    try { s = solveWend(p, wendDict(), { timeoutMs: 3000 }); }
+    catch (e) { console.warn('[lgs] wend: dictionary solver failed', e); }
+    if (!s) {
+      if (page) {
+        console.warn("[lgs] wend: the dictionary solver found no answer (a word missing from the bundled " +
+          "dictionary?); FALLING BACK to the page's solutionWords:", wendWords(p, page).join(' '));
+      }
+      return page;
+    }
+    if (page && wendKey(s) !== wendKey(page)) {
+      // The game hides specific words: another valid cover would not be accepted.
+      console.warn(`[lgs] wend: dictionary answer ${wendWords(p, s).join(' ')} differs from the page's ` +
+        `solutionWords ${wendWords(p, page).join(' ')}; playing the page's answer`);
+      return page;
+    }
+    return s;
+  },
+
+  async play(grid, p, paths) {
+    const cells = getCells(grid);
+    if (cells.length !== p.rows * p.cols) {
+      throw new Error(`wend: board has ${cells.length} cells, puzzle ${p.rows}x${p.cols}`);
+    }
+    const lockCheck = (c: number) => !!document.querySelector(`[data-testid="cell-${c}-locked-check"]`);
+    const letterCells = p.letters.map((l, i) => (l ? i : -1)).filter((i) => i >= 0);
+    // Trust cell-#-locked-check only if it is not on every letter cell before we start.
+    const trustCheck = !letterCells.every(lockCheck);
+
+    /** true / false, or null when neither signal is readable. */
+    const cellLocked = (c: number): boolean | null => {
+      if (trustCheck && lockCheck(c)) return true;
+      let known = false;
+      for (const pr of cellPropsCandidates(cells[c])) {
+        if ('isLocked' in pr) { known = true; if (pr.isLocked) return true; }
+      }
+      return known || trustCheck ? false : null;
+    };
+    const wordLocked = (path: number[]): boolean | null => {
+      const st = path.map(cellLocked);
+      if (st.every((x) => x === true)) return true;
+      return st.includes(null) ? null : false;
+    };
+    const waitLocked = async (path: number[], ms = 700): Promise<boolean | null> => {
+      const t = performance.now();
+      let st: boolean | null;
+      do {
+        await nextFrame();
+        if (!grid.isConnected) return true; // board replaced by the success screen
+        st = wordLocked(path);
+        if (st !== false) return st;
+      } while (performance.now() - t < ms);
+      return st;
+    };
+    const anySelected = () => cells.some((el) => cellPropsCandidates(el).some((pr) => pr.isSelected === true));
+    const clearSelection = async (n: number) => {
+      for (let i = 0; i < n + 1 && anySelected(); i++) key(grid, 'Backspace');
+      await nextFrame();
+    };
+
+    type Input = 'drag' | 'enter' | 'space' | 'tap';
+    const inputs: Record<Input, (path: number[]) => void> = {
+      drag: (path) => dragPath(cells, path, false),
+      enter: (path) => { for (const c of path) key(cells[c], 'Enter'); },
+      space: (path) => { for (const c of path) key(cells[c], ' '); },
+      tap: (path) => { for (const c of path) tap(cells[c]); },
+    };
+    let order: Input[] = ['drag', 'enter', 'space', 'tap'];
+    try {
+      const saved = localStorage.getItem('lgs-wend-input') as Input | null;
+      if (saved && saved in inputs) order = [saved, ...order.filter((x) => x !== saved)];
+    } catch {}
+
+    const failed: string[] = [];
+    for (const path of paths) {
+      if (!grid.isConnected) return;
+      if (wordLocked(path) === true) continue; // already found
+      let st: boolean | null = false;
+      for (const how of order) {
+        inputs[how](path);
+        st = await waitLocked(path);
+        if (st !== false) {
+          if (st && how !== order[0]) {
+            order = [how, ...order.filter((x) => x !== how)];
+            try { localStorage.setItem('lgs-wend-input', how); } catch {}
+          }
+          break;
+        }
+        console.warn(`[lgs] wend: ${how} input did not lock ${wendWords(p, [path])[0]}`);
+        await clearSelection(path.length);
+      }
+      if (st === false) failed.push(wendWords(p, [path])[0]);
+      await sleep(30); // let the found-word animation start before the next drag
+    }
+    if (failed.length) throw new Error(`wend: words not accepted: ${failed.join(', ')}`);
+  },
+};
+
+export const GAMES: Record<GameId, Game<any, any>> = { zip, queens, tango, patches, wend };
 
 export function currentGame(): GameId | null {
-  const m = location.pathname.match(/\/games\/(zip|queens|tango|patches)/);
+  const m = location.pathname.match(/\/games\/(zip|queens|tango|patches|wend)/);
   return (m?.[1] as GameId) ?? null;
 }
