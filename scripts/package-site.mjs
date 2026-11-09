@@ -5,8 +5,9 @@
 // 1. runs `npm run build` (writes dist/extension/ and dist/*.user.js)
 // 2. zips dist/extension/ into site/downloads/linkedin-larp.zip, inside a
 //    top-level "linkedin-larp/" folder so unzipping gives one folder to load
-// 3. copies the userscript to site/downloads/linkedin-larp.user.js
-// 4. writes site/downloads/latest.json { name, version, file, size, sha256, ... }
+// 3. zips dist/firefox/ into site/downloads/linkedin-larp-firefox.zip
+// 4. copies the userscript to site/downloads/linkedin-larp.user.js
+// 5. writes site/downloads/latest.json { name, version, file, size, sha256, ... }
 //    which the page reads to show "v1.0.0 · 45 KB".
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -44,6 +45,11 @@ try {
 } finally {
   rmSync(stage, { recursive: true, force: true });
 }
+
+// Firefox build, for about:debugging until the AMO listing is live.
+const ffZip = join(outDir, 'linkedin-larp-firefox.zip');
+rmSync(ffZip, { force: true });
+run('zip', ['-r', '-X', '-q', ffZip, '.'], { cwd: join(root, 'dist', 'firefox') });
 
 // Userscript (optional; the build names it, so pick whatever *.user.js it produced).
 const userscripts = readdirSync(join(root, 'dist')).filter((f) => f.endsWith('.user.js'));

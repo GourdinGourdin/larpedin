@@ -2,7 +2,7 @@
 // Toolbar popup: status of the active tab, quick links, auto-solve, shortcut.
 import { gameTheme } from '../page/theme.ts';
 import { fmtMs, sanitizeSettings, type RuntimeMsg, type Status } from '../page/settings.ts';
-import { gameList, getSettings, injectTheme, kbdHtml, openShortcutSettings, patchSettings, solveShortcut } from './common.ts';
+import { canChangeShortcut, gameList, getSettings, injectTheme, kbdHtml, openShortcutSettings, patchSettings, solveShortcut } from './common.ts';
 
 injectTheme();
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -99,6 +99,7 @@ chrome.storage.onChanged.addListener((ch, area) => {
 solveShortcut().then((s) => {
   $('shortcut').innerHTML = kbdHtml(s);
 });
+$('change-shortcut').hidden = !canChangeShortcut();
 $('change-shortcut').addEventListener('click', openShortcutSettings);
 $('options').addEventListener('click', () => chrome.runtime.openOptionsPage());
 

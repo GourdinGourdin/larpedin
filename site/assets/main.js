@@ -1,4 +1,4 @@
-// Linkedin Larp site: version info, browser hint, copy button, hero board and the Read → Solve → Play demo.
+// Linkedin Larp site: version info, store buttons per browser, copy button, hero board and the Read → Solve → Play demo.
 (() => {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
@@ -22,29 +22,71 @@
     })
     .catch(() => { /* keep the static fallback text */ });
 
-  // ---------------- browser hint ----------------
-  (function browserHint() {
+  // ---------------- stores + browser detection ----------------
+  // Paste each store's listing URL here once it is published; empty = "coming soon"
+  // (the button then jumps to the hand-install steps for that browser).
+  const STORES = {
+    chrome: '',  // https://chromewebstore.google.com/detail/<id>
+    edge: '',    // https://microsoftedge.microsoft.com/addons/detail/<id>
+    firefox: '', // https://addons.mozilla.org/firefox/addon/linkedin-larp/
+    safari: '',  // https://apps.apple.com/app/id<id>
+  };
+  const MANUAL = { chrome: '#manual-chromium', edge: '#manual-chromium', firefox: '#manual-firefox', safari: '#manual-safari' };
+
+  function detect() {
     const ua = navigator.userAgent;
     const brands = (navigator.userAgentData?.brands || []).map((b) => b.brand).join(' ');
-    const mobile = navigator.userAgentData?.mobile ?? /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-    let msg = '';
-    if (mobile) {
-      msg = "You're on a phone or tablet. Extensions don't run there, so open this page on a desktop computer to install.";
-    } else if (/Firefox\//.test(ua)) {
-      msg = "You're using Firefox. Linkedin Larp is built for Chrome; get Chrome to install it. (The Tampermonkey userscript may work, but it's untested in Firefox.)";
-    } else if (/Edg\//.test(ua) || /Edge/.test(brands)) {
-      msg = "You're using Edge. It's untested there, but you can try: the extensions page is edge://extensions.";
-    } else if (/OPR\//.test(ua) || /Opera/.test(brands)) {
-      msg = "You're using Opera. It's untested there, but you can try: the extensions page is opera://extensions.";
-    } else if (/Brave/.test(brands)) {
-      msg = "You're using Brave. It's untested there, but you can try: the extensions page is brave://extensions.";
-    } else if (/Safari\//.test(ua) && !/Chrome\/|Chromium\/|CriOS\//.test(ua)) {
-      msg = "You're using Safari. Linkedin Larp is a Chrome extension, so you'll need Chrome to install it.";
-    } else if (!/Chrome\//.test(ua)) {
-      msg = "This doesn't look like Chrome. Linkedin Larp is a Chrome extension, so you'll need Chrome to install it.";
+    const android = /Android/i.test(ua);
+    const ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    const mobile = android || ios || (navigator.userAgentData?.mobile ?? /Mobile/i.test(ua));
+    let name = 'Chrome', store = 'chrome', extPage = 'chrome://extensions';
+    if (/Firefox\/|FxiOS\//.test(ua)) { name = 'Firefox'; store = 'firefox'; extPage = 'about:addons'; }
+    else if (/Edg(e|A|iOS)?\//.test(ua) || /Edge/.test(brands)) { name = 'Edge'; store = 'edge'; extPage = 'edge://extensions'; }
+    else if (/OPR\//.test(ua) || /Opera/.test(brands)) { name = 'Opera'; extPage = 'opera://extensions'; }
+    else if (/Brave/.test(brands) || navigator.brave) { name = 'Brave'; extPage = 'brave://extensions'; }
+    else if (/Vivaldi/.test(ua)) { name = 'Vivaldi'; extPage = 'vivaldi://extensions'; }
+    else if (/Safari\//.test(ua) && !/Chrome\/|Chromium\/|CriOS\//.test(ua)) { name = 'Safari'; store = 'safari'; }
+    // Phones: only Firefox for Android and Safari on iOS run extensions.
+    let hint = '';
+    if (ios) {
+      if (store !== 'safari') hint = 'On iPhone and iPad, extensions only run in Safari. Open this page in Safari to install.';
+      store = 'safari'; name = 'Safari';
+    } else if (android && store !== 'firefox') {
+      hint = `${name} on Android can't run extensions. Install Firefox for Android, then add Linkedin Larp from Firefox Add-ons.`;
+      store = 'firefox'; name = 'Firefox';
     }
-    if (!msg) return;
-    $$('[data-browser-hint]').forEach((el) => { el.textContent = msg; el.hidden = false; });
+    return { name, store, extPage, mobile, hint };
+  }
+
+  (function stores() {
+    const b = detect();
+    let missing = false;
+    $$('[data-store]').forEach((card) => {
+      const id = card.getAttribute('data-store');
+      const link = $('[data-store-link]', card);
+      const url = STORES[id];
+      card.classList.toggle('is-detected', id === b.store);
+      if (url) { link.href = url; link.target = '_blank'; link.rel = 'noopener'; }
+      else { link.href = MANUAL[id]; link.insertAdjacentHTML('afterend', '<span class="soon">Coming soon</span>'); missing = true; }
+    });
+    if (missing) $$('[data-store-note]').forEach((el) => (el.hidden = false));
+    // Put the visitor's browser first.
+    const list = $('[data-stores]'); const mine = $(`[data-store="${b.store}"]`);
+    if (list && mine) list.prepend(mine);
+
+    const url = STORES[b.store];
+    $$('[data-install-primary]').forEach((a) => {
+      a.href = url || (b.mobile ? MANUAL[b.store] : '#install');
+      if (url) { a.target = '_blank'; a.rel = 'noopener'; }
+      const label = $('[data-install-label]', a);
+      if (a.hasAttribute('data-short')) a.textContent = `Add to ${b.name}`;
+      else if (label) label.textContent = `Add to ${b.name}, it's free`;
+    });
+    $$('[data-ext-page]').forEach((btn) => {
+      btn.setAttribute('data-copy', b.extPage);
+      const l = $('[data-copy-label]', btn); if (l) l.textContent = `Copy ${b.extPage}`;
+    });
+    if (b.hint) $$('[data-browser-hint]').forEach((el) => { el.textContent = b.hint; el.hidden = false; });
   })();
 
   // ---------------- copy buttons ----------------

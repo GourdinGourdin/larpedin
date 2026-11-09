@@ -41,8 +41,29 @@ export async function solveShortcut(): Promise<string> {
   } catch { return BRAND.shortcut; }
 }
 
+/** Which browser family we run in, for the few places that differ. */
+export function browserFamily(): 'firefox' | 'safari' | 'edge' | 'chromium' {
+  const ua = navigator.userAgent;
+  if (/Firefox\//.test(ua)) return 'firefox';
+  if (/Edg\//.test(ua)) return 'edge';
+  if (/Safari\//.test(ua) && !/Chrome\/|Chromium\//.test(ua)) return 'safari';
+  return 'chromium';
+}
+
+/** Can the user rebind the shortcut from here? (Safari has no such page.) */
+export const canChangeShortcut = () => browserFamily() !== 'safari';
+
 export function openShortcutSettings() {
-  chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+  const fam = browserFamily();
+  const cmds = chrome.commands as typeof chrome.commands & { openShortcutSettings?: () => Promise<void> };
+  if (fam === 'firefox') {
+    // Firefox 137+; older versions: Add-ons Manager > gear > Manage Extension Shortcuts.
+    if (cmds.openShortcutSettings) { cmds.openShortcutSettings().catch(() => {}); return; }
+    chrome.tabs.create({ url: 'about:addons' });
+    return;
+  }
+  // Brave, Opera, Vivaldi and Arc all redirect chrome:// to their own pages.
+  chrome.tabs.create({ url: fam === 'edge' ? 'edge://extensions/shortcuts' : 'chrome://extensions/shortcuts' });
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);

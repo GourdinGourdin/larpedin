@@ -51,9 +51,13 @@ try {
     if (s.name === 'desktop-1440') {
       const v = await page.textContent('[data-version]');
       check(/^v\d/.test(v), `version label "${v}"`);
-      const href = await page.getAttribute('.btn-big[data-download]', 'href');
+      const primary = await page.textContent('.hero [data-install-primary]');
+      check(/Add to Chrome/.test(primary), `hero button "${primary.trim()}"`);
+      const detected = await page.getAttribute('.store.is-detected', 'data-store');
+      check(detected === 'chrome', `detected store ${detected}`);
+      const href = await page.getAttribute('#install [data-download]', 'href');
       check(href === 'downloads/linkedin-larp.zip', `download href ${href}`);
-      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.hero .btn-big')]);
+      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#install [data-download]')]);
       check(dl.suggestedFilename() === 'linkedin-larp.zip', `clicking Download saves ${dl.suggestedFilename()}`);
       // demo frames
       await page.locator('#how').scrollIntoViewIfNeeded();
@@ -66,8 +70,8 @@ try {
       check(/ms/.test(bench), `in-browser bench "${bench}"`);
     }
     if (s.name === 'mobile-390') {
-      const hint = await page.locator('.hero [data-browser-hint]');
-      check(await hint.isVisible(), `mobile browser hint shown: "${(await hint.textContent()).slice(0, 50)}…"`);
+      const first = await page.getAttribute('[data-stores] .store:first-child', 'data-store');
+      check(first === 'safari', `iPhone Safari: App Store card first (${first})`);
     }
     // keyboard focus is visible on the first link
     if (s.name === 'laptop-1024') {
@@ -80,14 +84,16 @@ try {
     await ctx.close();
   }
 
-  // ---- reduced motion + Firefox hint ----
+  // ---- reduced motion + Firefox detection ----
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce',
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14.0; rv:131.0) Gecko/20100101 Firefox/131.0' });
   const page = await ctx.newPage();
   await page.goto(BASE, { waitUntil: 'networkidle' });
   const pressed = await page.getAttribute('[data-demo-toggle]', 'aria-pressed');
   check(pressed === 'true', 'reduced motion: demo starts paused');
-  check(await page.locator('.hero [data-browser-hint]').isVisible(), 'firefox UA: browser hint shown');
+  const ff = await page.getAttribute('[data-stores] .store:first-child', 'data-store');
+  check(ff === 'firefox', `firefox UA: Firefox Add-ons card first (${ff})`);
+  check(/Add to Firefox/.test(await page.textContent('.hero [data-install-primary]')), 'firefox UA: hero says Add to Firefox');
   await page.screenshot({ path: join(out, 'reduced-motion-firefox-top.png') });
   await page.locator('#how').screenshot({ path: join(out, 'reduced-motion-demo.png') });
   await ctx.close();

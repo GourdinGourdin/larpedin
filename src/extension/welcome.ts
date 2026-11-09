@@ -2,7 +2,7 @@
 // Welcome page (opened on install) that doubles as the options page.
 import { sanitizeSettings, type Settings } from '../page/settings.ts';
 import {
-  gameList, getSettings, injectTheme, kbdHtml, openShortcutSettings, patchSettings, settingsFieldsHtml, solveShortcut,
+  gameList, getSettings, injectTheme, kbdHtml, canChangeShortcut, openShortcutSettings, patchSettings, settingsFieldsHtml, solveShortcut,
 } from './common.ts';
 
 injectTheme();
@@ -41,4 +41,5 @@ solveShortcut().then((s) => {
   $('shortcut').innerHTML = kbdHtml(s);
   $('kbd-inline').innerHTML = kbdHtml(s);
 });
+$('change-shortcut').hidden = !canChangeShortcut();
 $('change-shortcut').addEventListener('click', openShortcutSettings);

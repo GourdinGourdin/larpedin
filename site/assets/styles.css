@@ -319,3 +319,18 @@ h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--p
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0s !important; transition-duration: .001ms !important; }
   .btn:hover, .game:hover { transform: none; }
 }
+
+/* ---------- store cards (install section) ---------- */
+.stores { list-style: none; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.store { background: var(--surface); border: 1px solid var(--line); border-top: 5px solid var(--g); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.store p { color: var(--ink-2); font-size: 16px; margin: 0; flex: 1; }
+.store .btn { align-self: flex-start; --btn-bg: var(--g-ink); }
+.store.is-detected { box-shadow: 0 0 0 3px var(--g); }
+.store.is-detected h3::after { content: "Your browser"; display: inline-block; margin-left: 8px; vertical-align: middle; font: 700 12px/1 var(--font); padding: 4px 8px; border-radius: 999px; background: var(--g-soft); color: var(--g-ink); }
+.store .soon { font-size: 13px; font-weight: 700; color: var(--muted); }
+.store-note { font-size: 15px; margin: 0 0 32px; }
+.manual-title { margin: 40px 0 16px; font-size: 22px; }
+.manual-more { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+.manual-more > div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+.manual-more h3 { font-size: 18px; margin-bottom: 8px; }
+.manual-more p { color: var(--ink-2); font-size: 16px; margin: 0; }

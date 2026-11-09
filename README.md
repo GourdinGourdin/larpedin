@@ -21,16 +21,23 @@ Reads, solves and plays LinkedIn's daily puzzles (**Zip**, **Queens**, **Tango**
    - Queens and Tango: tap cells until the right symbol shows.
    - Patches: drag corner to corner for each rectangle.
 
-## Install (Chrome)
+## Install
 
 ```bash
 npm install && npm run build
 ```
 
-Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and pick `dist/extension`
-(or upload `dist/linkedin-larp-<version>.zip`). A welcome page opens with a short guide and the settings.
-Reload any LinkedIn tab that was already open. Or install `dist/linkedin-larp.user.js` in Tampermonkey
-(panel only: no toolbar popup, settings stay in that site's localStorage).
+The build writes one package per browser family:
+
+- `dist/extension/`: Chrome, Edge, Brave, Opera. Open `chrome://extensions`, turn on
+  **Developer mode**, click **Load unpacked** and pick the folder.
+- `dist/firefox/`: Firefox desktop and Android (event-page background, AMO id). For a quick try,
+  `about:debugging` > **Load Temporary Add-on**.
+- `dist/safari/`: input for `sh scripts/safari.sh`, which needs full Xcode and makes a macOS + iOS app.
+- `dist/store/`: the zips to upload to each store. [docs/PUBLISHING.md](docs/PUBLISHING.md) covers accounts, fees and review.
+- `dist/linkedin-larp.user.js`: a userscript for Tampermonkey (panel only).
+
+A welcome page opens on install. Reload any LinkedIn tab that was already open.
 
 ## Usage
 

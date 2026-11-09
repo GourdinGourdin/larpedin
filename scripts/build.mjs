@@ -1,6 +1,8 @@
 // Builds Linkedin Larp:
-//   dist/extension/              unpacked MV3 extension (load in chrome://extensions)
-//   dist/linkedin-larp-<v>.zip   the same folder, zipped for upload
+//   dist/extension/              unpacked MV3 extension for Chrome, Edge, Brave, Opera
+//   dist/firefox/, dist/safari/  the same files with each browser's manifest
+//   dist/store/*.zip             store uploads (Chrome Web Store / Edge, Firefox AMO, source for AMO)
+//   dist/linkedin-larp-<v>.zip   dist/extension zipped
 //   dist/linkedin-larp.user.js   userscript (page script only, settings in localStorage)
 import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
@@ -39,29 +41,71 @@ if (description.length > 132) throw new Error(`manifest description is ${descrip
 
 const icons = { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 128: 'icons/icon-128.png' };
 const matches = ['https://www.linkedin.com/*'];
-writeFileSync(`${out}/manifest.json`, JSON.stringify({
-  manifest_version: 3,
-  name: BRAND.name,
-  short_name: 'Larp',
-  version: pkg.version,
-  description,
-  icons,
-  action: { default_title: BRAND.name, default_popup: 'popup.html', default_icon: icons },
-  options_ui: { page: 'welcome.html', open_in_tab: true },
-  background: { service_worker: 'background.js' },
-  permissions: ['storage'],
-  commands: {
-    solve: { suggested_key: { default: 'Alt+S' }, description: 'Solve the puzzle on this page' },
-  },
-  content_scripts: [
-    { matches, js: ['bridge.js'], run_at: 'document_idle' },
-    { matches, js: ['content.js'], run_at: 'document_idle', world: 'MAIN' },
-  ],
-}, null, 2));
+
+// One manifest, three flavours. Every browser gets the same files; only the
+// manifest differs.
+//   chrome  : Chrome Web Store zip. Also what Edge Add-ons, Opera and Brave take.
+//   firefox : addons.mozilla.org (desktop + Android). Firefox has no MV3 service
+//             workers, so the background runs as an event page, and AMO needs an
+//             add-on id and a data-collection declaration.
+//   safari  : input for `xcrun safari-web-extension-converter` (scripts/safari.sh),
+//             which wraps it in a macOS + iOS app for the App Store.
+// content.js runs in the page's MAIN world. Where a browser ignores `world`,
+// content.js notices it is in the isolated world and re-injects itself as a
+// <script> from web_accessible_resources (see src/page/main.ts).
+const GECKO_ID = 'linkedin-larp@linkedin-larp.app'; // permanent once published on AMO
+function manifest(target) {
+  const m = {
+    manifest_version: 3,
+    name: BRAND.name,
+    short_name: 'Larp',
+    version: pkg.version,
+    description,
+    icons,
+    action: { default_title: BRAND.name, default_popup: 'popup.html', default_icon: icons },
+    options_ui: { page: 'welcome.html', open_in_tab: true },
+    background: target === 'firefox' ? { scripts: ['background.js'] } : { service_worker: 'background.js' },
+    permissions: ['storage'],
+    commands: {
+      solve: { suggested_key: { default: 'Alt+S' }, description: 'Solve the puzzle on this page' },
+    },
+    content_scripts: [
+      { matches, js: ['bridge.js'], run_at: 'document_idle' },
+      { matches, js: ['content.js'], run_at: 'document_idle', world: 'MAIN' },
+    ],
+    web_accessible_resources: [{ resources: ['content.js'], matches }],
+  };
+  if (target === 'firefox') {
+    m.host_permissions = matches; // shown in the install prompt, so content scripts run without an extra click
+    m.browser_specific_settings = {
+      gecko: { id: GECKO_ID, strict_min_version: '128.0', data_collection_permissions: { required: ['none'] } },
+      gecko_android: { strict_min_version: '128.0' },
+    };
+  }
+  if (target === 'safari') m.browser_specific_settings = { safari: { strict_min_version: '16.4' } };
+  return m;
+}
+
+const zipDir = (dir, zipPath) => {
+  rmSync(zipPath, { force: true });
+  execFileSync('zip', ['-qrX', zipPath, '.'], { cwd: dir });
+};
+
+const targets = { chrome: out, firefox: 'dist/firefox', safari: 'dist/safari' };
+for (const [target, dir] of Object.entries(targets)) {
+  if (dir !== out) { rmSync(dir, { recursive: true, force: true }); cpSync(out, dir, { recursive: true }); }
+  writeFileSync(`${dir}/manifest.json`, JSON.stringify(manifest(target), null, 2));
+}
+
+// Store uploads: dist/store/linkedin-larp-<target>-<v>.zip (manifest at the zip root).
+rmSync('dist/store', { recursive: true, force: true });
+mkdirSync('dist/store', { recursive: true });
+for (const target of ['chrome', 'firefox']) zipDir(targets[target], `${process.cwd()}/dist/store/linkedin-larp-${target}-${pkg.version}.zip`);
+// Firefox reviewers ask for the source when the code is bundled.
+execFileSync('git', ['archive', '--format=zip', '-o', `dist/store/linkedin-larp-source-${pkg.version}.zip`, 'HEAD']);
 
 const zipName = `linkedin-larp-${pkg.version}.zip`;
-rmSync(`dist/${zipName}`, { force: true });
-execFileSync('zip', ['-qrX', `../${zipName}`, '.'], { cwd: out });
+zipDir(out, `${process.cwd()}/dist/${zipName}`);
 
 writeFileSync('dist/linkedin-larp.user.js', `// ==UserScript==
 // @name         ${BRAND.name}
@@ -75,4 +119,4 @@ writeFileSync('dist/linkedin-larp.user.js', `// ==UserScript==
 ${files['content.js']}`);
 
 const kb = (s) => `${(s.length / 1024).toFixed(1)} KB`;
-console.log(`built ${out} (content ${kb(files['content.js'])}, popup ${kb(files['popup.js'])}), dist/${zipName}, dist/linkedin-larp.user.js`);
+console.log(`built ${Object.values(targets).join(', ')} (content ${kb(files['content.js'])}, popup ${kb(files['popup.js'])}), dist/store/, dist/${zipName}, dist/linkedin-larp.user.js`);

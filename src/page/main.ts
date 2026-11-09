@@ -206,4 +206,22 @@ function boot() {
   tick();
 }
 
-boot();
+/**
+ * True when this script runs as an extension content script in the isolated
+ * world: there `runtime.id` is set, while page scripts never see it. That
+ * happens on browsers that ignore the manifest's `world: "MAIN"`. The isolated
+ * world can't see React's props on the DOM nodes, so re-inject this same file
+ * into the page as a <script> (listed in web_accessible_resources) and stop.
+ */
+function reinjectIntoPage(): boolean {
+  const g = globalThis as any;
+  const runtime = g.browser?.runtime?.id ? g.browser.runtime : g.chrome?.runtime?.id ? g.chrome.runtime : null;
+  if (!runtime) return false;
+  const s = document.createElement('script');
+  s.src = runtime.getURL('content.js');
+  s.onload = () => s.remove();
+  (document.head ?? document.documentElement).appendChild(s);
+  return true;
+}
+
+if (!reinjectIntoPage()) boot();

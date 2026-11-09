@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Linkedin Larp: solve LinkedIn's daily puzzles in milliseconds</title>
-  <meta name="description" content="Linkedin Larp is a free, open-source Chrome extension that reads, solves and plays LinkedIn's daily puzzle games (Zip, Queens, Tango, Patches, Wend) in milliseconds. No AI, no screenshots, no data sent anywhere.">
+  <meta name="description" content="Linkedin Larp is a free, open-source browser extension (Chrome, Edge, Brave, Firefox, Safari) that reads, solves and plays LinkedIn's daily puzzle games (Zip, Queens, Tango, Patches, Wend) in milliseconds. No AI, no screenshots, no data sent anywhere.">
   <meta name="theme-color" content="#FBF7EF">
   <meta name="color-scheme" content="light">
   <!-- REPLACE_ME: set the deployed URL here and in og:url / og:image / twitter:image / JSON-LD below -->
@@ -16,7 +16,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Linkedin Larp">
   <meta property="og:title" content="Linkedin Larp: LinkedIn's daily puzzles, solved in milliseconds">
-  <meta property="og:description" content="A free Chrome extension that reads, solves and plays Zip, Queens, Tango, Patches and Wend. Exact solvers, no AI, no data sent anywhere.">
+  <meta property="og:description" content="A free browser extension that reads, solves and plays Zip, Queens, Tango, Patches and Wend. Exact solvers, no AI, no data sent anywhere.">
   <meta property="og:url" content="https://REPLACE_ME.github.io/linkedin-larp/">
   <meta property="og:image" content="https://REPLACE_ME.github.io/linkedin-larp/assets/og.png">
   <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
   <meta property="og:image:alt" content="Linkedin Larp: a puzzle grid with a path drawn through it, and the words Read, Solve, Play.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Linkedin Larp: LinkedIn's daily puzzles, solved in milliseconds">
-  <meta name="twitter:description" content="Free Chrome extension for Zip, Queens, Tango, Patches and Wend. Exact solvers, no AI, no tracking.">
+  <meta name="twitter:description" content="Free browser extension for Zip, Queens, Tango, Patches and Wend. Exact solvers, no AI, no tracking.">
   <meta name="twitter:image" content="https://REPLACE_ME.github.io/linkedin-larp/assets/og.png">
 
   <script type="application/ld+json">
@@ -33,8 +33,8 @@
     "@type": "SoftwareApplication",
     "name": "Linkedin Larp",
     "applicationCategory": "BrowserApplication",
-    "operatingSystem": "Google Chrome (desktop)",
-    "description": "A Chrome extension that reads, solves and plays LinkedIn's daily puzzle games in milliseconds.",
+    "operatingSystem": "Chrome, Edge, Brave, Opera, Firefox (desktop and Android), Safari (macOS, iOS, iPadOS)",
+    "description": "A browser extension that reads, solves and plays LinkedIn's daily puzzle games in milliseconds.",
     "url": "https://REPLACE_ME.github.io/linkedin-larp/",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   }
@@ -60,7 +60,7 @@
           <li><a href="#faq">FAQ</a></li>
         </ul>
       </nav>
-      <a class="btn btn-small" href="downloads/linkedin-larp.zip" download data-download>Download</a>
+      <a class="btn btn-small" href="#install" data-install-primary data-short>Install</a>
     </div>
   </header>
 
@@ -69,15 +69,15 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="wrap hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow"><span class="stripe" aria-hidden="true"></span>Free Chrome extension</p>
+          <p class="eyebrow"><span class="stripe" aria-hidden="true"></span>Free browser extension</p>
           <h1 id="hero-title">LinkedIn's daily puzzles, <em>solved in milliseconds.</em></h1>
           <p class="lede">Linkedin Larp reads the puzzle straight from the page, solves it with an exact search, and plays the moves for you. Zip, Queens, Tango, Patches and Wend. No AI, no guessing, no data sent anywhere.</p>
           <div class="cta-row">
-            <a class="btn btn-big" href="downloads/linkedin-larp.zip" download data-download>
+            <a class="btn btn-big" href="#install" data-install-primary>
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Download for Chrome
+              <span data-install-label>Install for free</span>
             </a>
-            <a class="btn btn-ghost" href="#install">How to install</a>
+            <a class="btn btn-ghost" href="#install">All browsers</a>
           </div>
           <p class="meta" aria-live="polite"><span data-version>Free, open source</span> · <a href="https://github.com/REPLACE_ME/linkedin-larp">Source on GitHub</a></p>
           <p class="browser-hint" data-browser-hint hidden></p>
@@ -212,14 +212,33 @@
       <div class="wrap">
         <p class="kicker">Install</p>
         <h2 id="install-title">Set up in about a minute</h2>
-        <p class="section-lede">Linkedin Larp isn't on the Chrome Web Store, so you load it yourself. It's the same thing developers do every day, and you can read every line of code first.</p>
+        <p class="section-lede">Pick your browser. Installing from its store is one click: the extension sets itself up and shows up in your extensions list, and it updates itself.</p>
+        <span class="browser-hint inline" data-browser-hint hidden></span>
+        <ul class="stores" data-stores>
+          <li class="store" data-store="chrome" style="--g: var(--zip); --g-ink: var(--zip-ink); --g-soft: var(--zip-soft)">
+            <h3>Chrome Web Store</h3>
+            <p>Chrome, Brave, Opera, Arc and Vivaldi on Windows, Mac, Linux and ChromeOS.</p>
+            <a class="btn btn-small" data-store-link href="#manual-chromium">Add to Chrome</a>
+          </li>
+          <li class="store" data-store="edge" style="--g: var(--wend); --g-ink: var(--wend-ink); --g-soft: var(--wend-soft)">
+            <h3>Edge Add-ons</h3>
+            <p>Microsoft Edge on Windows and Mac. (Edge can also install from the Chrome Web Store.)</p>
+            <a class="btn btn-small" data-store-link href="#manual-chromium">Get it for Edge</a>
+          </li>
+          <li class="store" data-store="firefox" style="--g: var(--patches); --g-ink: var(--patches-ink); --g-soft: var(--patches-soft)">
+            <h3>Firefox Add-ons</h3>
+            <p>Firefox on Windows, Mac and Linux, and <b>Firefox for Android</b>.</p>
+            <a class="btn btn-small" data-store-link href="#manual-firefox">Add to Firefox</a>
+          </li>
+          <li class="store" data-store="safari" style="--g: var(--queens); --g-ink: var(--queens-ink); --g-soft: var(--queens-soft)">
+            <h3>App Store</h3>
+            <p>Safari on <b>Mac, iPhone and iPad</b>. Install the app, then turn the extension on in Safari.</p>
+            <a class="btn btn-small" data-store-link href="#manual-safari">Get it for Safari</a>
+          </li>
+        </ul>
+        <p class="store-note muted" data-store-note hidden>Store listings marked "coming soon" are in review. Until then, the steps below install the same extension by hand.</p>
 
-        <div class="notice" role="note">
-          <strong>Desktop Chrome only.</strong>
-          Chrome on phones and tablets can't run extensions. Other Chromium browsers (Edge, Brave, Arc, Opera) have the same "Load unpacked" option but aren't tested.
-          <span class="browser-hint inline" data-browser-hint hidden></span>
-        </div>
-
+        <h3 class="manual-title" id="manual-chromium">Install by hand: Chrome, Edge, Brave, Opera</h3>
         <ol class="install-steps">
           <li>
             <h3>Download the zip</h3>
@@ -227,31 +246,40 @@
           </li>
           <li>
             <h3>Unzip it</h3>
-            <p>Double-click it on a Mac, or right-click and choose <b>Extract All</b> on Windows. You'll get a folder called <code>linkedin-larp</code>. Put it somewhere you'll keep it: Chrome loads the extension from that folder.</p>
+            <p>Double-click it on a Mac, or right-click and choose <b>Extract All</b> on Windows. Keep the <code>linkedin-larp</code> folder: the browser loads the extension from it.</p>
           </li>
           <li>
             <h3>Open the extensions page</h3>
-            <p>Type <code>chrome://extensions</code> in the address bar and press Enter. Web pages aren't allowed to link there, so copy it:</p>
-            <p><button type="button" class="btn btn-copy" data-copy="chrome://extensions"><span data-copy-label>Copy chrome://extensions</span></button></p>
+            <p>Web pages can't link there, so copy the address and paste it in the address bar:</p>
+            <p><button type="button" class="btn btn-copy" data-copy="chrome://extensions" data-ext-page><span data-copy-label>Copy chrome://extensions</span></button></p>
           </li>
           <li>
             <h3>Turn on Developer mode</h3>
-            <p>Flip the <b>Developer mode</b> switch in the top-right corner of that page.</p>
+            <p>The switch is in the top-right corner (bottom-left in Edge).</p>
           </li>
           <li>
             <h3>Click "Load unpacked"</h3>
-            <p>Choose the <code>linkedin-larp</code> folder, the one that contains <code>manifest.json</code>. The extension appears in the list.</p>
+            <p>Choose the <code>linkedin-larp</code> folder, the one that contains <code>manifest.json</code>.</p>
           </li>
           <li>
             <h3>Open a LinkedIn game</h3>
-            <p>A small panel appears in the bottom-left corner of the game page. Press <kbd>Alt</kbd>+<kbd>S</kbd> (<kbd>Option</kbd>+<kbd>S</kbd> on a Mac) or click <b>Solve</b>.</p>
+            <p>A small panel appears on the game page. Press <kbd>Alt</kbd>+<kbd>S</kbd> (<kbd>Option</kbd>+<kbd>S</kbd> on a Mac) or click <b>Solve</b>.</p>
           </li>
         </ol>
-
+        <div class="manual-more">
+          <div id="manual-firefox">
+            <h3>Firefox, before the store listing is live</h3>
+            <p>Firefox only keeps add-ons it has signed, so a hand-loaded copy lasts until you quit Firefox. Download <a href="downloads/linkedin-larp-firefox.zip" download>linkedin-larp-firefox.zip</a>, open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and pick the zip.</p>
+          </div>
+          <div id="manual-safari">
+            <h3>Safari, iPhone and iPad</h3>
+            <p>Apple only runs Safari extensions that come inside an app, so there's no hand install. Once the App Store app is out: install it, then turn on Linkedin Larp in Safari's Extensions settings (on iPhone: Settings &gt; Apps &gt; Safari &gt; Extensions) and allow it on linkedin.com.</p>
+          </div>
+        </div>
         <details class="more">
-          <summary>Updating, removing, or using Tampermonkey instead</summary>
+          <summary>Updating, removing, or using a userscript instead</summary>
           <div class="more-body">
-            <p><b>Update:</b> download the new zip, replace the old folder's contents, then click the reload arrow on the Linkedin Larp card in <code>chrome://extensions</code>.</p>
+            <p><b>Update:</b> store installs update themselves. For a hand install, download the new zip, replace the old folder's contents, then click the reload arrow on the Linkedin Larp card in the extensions page.</p>
             <p><b>Remove:</b> click <b>Remove</b> on the card in <code>chrome://extensions</code>, then delete the folder.</p>
             <p><b>Tampermonkey:</b> if you already use the Tampermonkey extension, you can install the <a href="downloads/linkedin-larp.user.js" data-userscript>userscript version</a> instead. It runs the same code.</p>
           </div>
@@ -321,8 +349,8 @@
               <li>It only runs on <code>www.linkedin.com</code>, and does nothing unless the address is one of the game pages.</li>
               <li>On a game page it reads the puzzle grid and nothing else: no profile, feed, messages or contacts.</li>
               <li>It contains no network code at all: no <code>fetch</code>, <code>XMLHttpRequest</code>, WebSocket or beacon calls, no analytics, no remote scripts.</li>
-              <li>Its only Chrome permission is <code>storage</code>, to sync your settings. A small background worker opens the welcome page on install and handles the Alt+S shortcut. It has no access to any other site.</li>
-              <li>Your settings are kept in Chrome's extension storage, and the puzzle archive in the page's own local storage, both on your computer. <b>Export</b> saves a file to your computer; it doesn't upload it.</li>
+              <li>Its only browser permission is <code>storage</code>, to sync your settings. A small background worker opens the welcome page on install and handles the Alt+S shortcut. It has no access to any other site.</li>
+              <li>Your settings are kept in the browser's extension storage, and the puzzle archive in the page's own local storage, both on your computer. <b>Export</b> saves a file to your computer; it doesn't upload it.</li>
             </ul>
             <p>Don't take our word for it: <a href="https://github.com/REPLACE_ME/linkedin-larp">the source is public</a>, and it's small enough to read in one sitting.</p>
           </details>
@@ -331,12 +359,12 @@
             <p>No. Each game has a hand-written exact solver: a search that tries possibilities and uses the puzzle's rules to rule most of them out early (constraint propagation). If there's an answer it finds it, and the answer is always correct. That's why it takes well under a millisecond on most puzzles instead of seconds.</p>
           </details>
           <details>
-            <summary>Why isn't it on the Chrome Web Store?</summary>
-            <p>It's a small hobby project, and automating another site's games isn't the kind of thing the Web Store is for. Loading it yourself takes about a minute, and you get exactly the code you can read on GitHub.</p>
+            <summary>Why does the store button say "coming soon"?</summary>
+            <p>Each store reviews an extension before listing it, which takes from a day to a few weeks. Until a listing is live, the button takes you to the hand-install steps, which install exactly the same code.</p>
           </details>
           <details>
             <summary>Does it work in Firefox, Safari or on my phone?</summary>
-            <p>It's built and tested for desktop Chrome. Phone browsers can't run it. There's also a userscript version for the Tampermonkey extension, which may work in other desktop browsers, but that isn't tested.</p>
+            <p>Yes, from each browser's store: Chrome, Edge, Brave and Opera on computers; Firefox on computers and Android; Safari on Mac, iPhone and iPad. Chrome on phones can't run extensions at all, so on Android use Firefox, and on iPhone use Safari. It's tested most in desktop Chrome.</p>
           </details>
           <details>
             <summary>It stopped working. What now?</summary>
@@ -358,7 +386,7 @@
     <section class="final" aria-labelledby="final-title">
       <div class="wrap final-inner">
         <h2 id="final-title">Ready to larp?</h2>
-        <a class="btn btn-big btn-invert" href="downloads/linkedin-larp.zip" download data-download>Download Linkedin Larp</a>
+        <a class="btn btn-big btn-invert" href="#install" data-install-primary><span data-install-label>Install Linkedin Larp</span></a>
         <p class="meta"><span data-version>Free, open source</span></p>
       </div>
     </section>
