@@ -11,7 +11,9 @@
     "build": "node scripts/build.mjs",
     "typecheck": "tsc",
     "bench": "node scripts/bench-zip.ts",
-    "bench:tango": "node scripts/bench-tango.ts"
+    "bench:tango": "node scripts/bench-tango.ts",
+    "bench:queens": "node scripts/bench-queens.ts",
+    "bench:patches": "node scripts/bench-patches.ts"
   },
   "keywords": [],
   "author": "",

@@ -42,9 +42,14 @@ Add exported puzzles to `fixtures/` (same shape as `fixtures/2026-11-09.json`) t
 
 ## Status
 
-| | Read | Solve | Play on LinkedIn |
+Benchmarks on seeded random puzzles (`npm run bench`, `bench:queens`, `bench:tango`, `bench:patches`):
+
+| | Read | Solve (median / worst) | Play on LinkedIn |
 |---|---|---|---|
-| Zip | checked on the live page | 6×6 about 1 ms, 8×8 median under 1 ms; random 10×10 can take seconds | **untested** (needs an unsolved puzzle) |
-| Queens | checked | under 1 ms | **untested** |
-| Tango | checked | matches LinkedIn's own solution | **untested** |
-| Patches | checked | under 1 ms | **untested** |
+| Zip | checked on the live page | 8×8: 0.16 / 5 ms · 10×10: 0.7 / 34 ms | **untested** |
+| Queens | checked | 7–11 (one answer): 0.01 / 0.05 ms | **untested** |
+| Tango | checked; matches LinkedIn's own solution | 6×6: 0.01 / 0.04 ms | **untested** |
+| Patches | checked | 6–9: 0.03 / 0.6 ms | **untested** |
+
+To check all four in play: open a fresh puzzle, press Alt+S, and read the timing line in the panel.
+For Patches you can set the drag pace with `localStorage['lgs-patches-pace']` = `sync` | `task` | `frame`.
