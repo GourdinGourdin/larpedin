@@ -7,10 +7,11 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node --test test/solvers.test.ts",
+    "test": "node --test test/*.test.ts",
     "build": "node scripts/build.mjs",
     "typecheck": "tsc",
-    "bench": "node scripts/bench-zip.ts"
+    "bench": "node scripts/bench-zip.ts",
+    "bench:tango": "node scripts/bench-tango.ts"
   },
   "keywords": [],
   "author": "",
