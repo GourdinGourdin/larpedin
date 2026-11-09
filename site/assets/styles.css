@@ -8,11 +8,11 @@
    --x-soft  pale tint for backgrounds
    ------------------------------------------------------------------ */
 :root {
-  --zip: #F26B3A;     --zip-ink: #B03C10;     --zip-soft: #FDE4D8;
-  --queens: #8B5CF6;  --queens-ink: #5B30C9;  --queens-soft: #ECE4FE;
-  --tango: #2FA86B;   --tango-ink: #1A6B43;   --tango-soft: #DAF1E4;
-  --patches: #E0A526; --patches-ink: #855B00; --patches-soft: #FAEDCC;
-  --wend: #E04F8A;    --wend-ink: #A6245E;    --wend-soft: #FBDDE9;
+  --zip: #B84A17;     --zip-ink: #8F3610;     --zip-soft: #F6DFD2;
+  --queens: #6E46AD;  --queens-ink: #533389;  --queens-soft: #E7DEF3;
+  --tango: #1B7264;   --tango-ink: #12564B;   --tango-soft: #D5EAE5;
+  --patches: #B03558; --patches-ink: #8A2543; --patches-soft: #F3DAE1;
+  --wend: #2B60A8;    --wend-ink: #1F4882;    --wend-soft: #DAE4F2;
 
   --bg: #FBF7EF;
   --bg-alt: #F4EDE0;
