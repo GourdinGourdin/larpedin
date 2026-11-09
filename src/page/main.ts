@@ -1,4 +1,4 @@
-// Linkedin Larp: entry point injected into linkedin.com pages (main world).
+// LarpedIn: entry point injected into linkedin.com pages (main world).
 // - Floating panel (panel.ts): Solve (Alt+S), auto-solve, per-game settings.
 // - Every puzzle seen is saved to localStorage so you build your own archive;
 //   "Export puzzles" downloads it as JSON for the test suite.
@@ -54,8 +54,8 @@ function alreadySolved(game: GameId, grid: HTMLElement): boolean {
 
 function boot() {
   const w = window as any;
-  if (w.__linkedinLarp) return; // injected twice (extension + userscript)
-  w.__linkedinLarp = VERSION;
+  if (w.__larpedin) return; // injected twice (extension + userscript)
+  w.__larpedin = VERSION;
 
   let settings = loadSettings();
   let status: Status = { game: null, phase: 'idle' };
@@ -85,7 +85,7 @@ function boot() {
     const grid = getGrid();
     const err = lastError as Error | null;
     return JSON.stringify({
-      app: `Linkedin Larp ${VERSION}`,
+      app: `LarpedIn ${VERSION}`,
       when: new Date().toISOString(),
       page: location.pathname,
       userAgent: navigator.userAgent,
@@ -138,11 +138,11 @@ function boot() {
       await g.play(grid, puzzle, sol, settings);
       const t3 = performance.now();
       const timings: Timings = { read: t1 - t0, solve: t2 - t1, play: t3 - t2, total: t3 - t0 };
-      console.log(`[Linkedin Larp] ${game} (${reason})`, timings, { puzzle, sol });
+      console.log(`[LarpedIn] ${game} (${reason})`, timings, { puzzle, sol });
       setStatus({ game, phase: 'done', timings, message: `Solved in ${fmtMs(timings.total)}` });
     } catch (e) {
       lastError = e;
-      console.error('[Linkedin Larp]', e);
+      console.error('[LarpedIn]', e);
       const what = phase === 'reading' ? 'read the board' : phase === 'solving' ? 'solve the puzzle' : 'play the answer';
       setStatus({ game, phase: 'error', message: `Couldn't ${what}: ${(e as Error)?.message ?? e}` });
     } finally {

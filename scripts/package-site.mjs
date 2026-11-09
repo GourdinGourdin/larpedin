@@ -3,10 +3,10 @@
 //   node scripts/package-site.mjs          (or: npm run site:build)
 //
 // 1. runs `npm run build` (writes dist/extension/ and dist/*.user.js)
-// 2. zips dist/extension/ into site/downloads/linkedin-larp.zip, inside a
-//    top-level "linkedin-larp/" folder so unzipping gives one folder to load
-// 3. zips dist/firefox/ into site/downloads/linkedin-larp-firefox.zip
-// 4. copies the userscript to site/downloads/linkedin-larp.user.js
+// 2. zips dist/extension/ into site/downloads/larpedin.zip, inside a
+//    top-level "larpedin/" folder so unzipping gives one folder to load
+// 3. zips dist/firefox/ into site/downloads/larpedin-firefox.zip
+// 4. copies the userscript to site/downloads/larpedin.user.js
 // 5. writes site/downloads/latest.json { name, version, file, size, sha256, ... }
 //    which the page reads to show "v1.0.0 · 45 KB".
 import { execFileSync } from 'node:child_process';
@@ -19,9 +19,9 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extDir = join(root, 'dist', 'extension');
 const outDir = join(root, 'site', 'downloads');
-const ZIP = 'linkedin-larp.zip';
-const USERSCRIPT = 'linkedin-larp.user.js';
-const FOLDER = 'linkedin-larp';
+const ZIP = 'larpedin.zip';
+const USERSCRIPT = 'larpedin.user.js';
+const FOLDER = 'larpedin';
 
 const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', cwd: root, ...opts });
 
@@ -47,7 +47,7 @@ try {
 }
 
 // Firefox build, for about:debugging until the AMO listing is live.
-const ffZip = join(outDir, 'linkedin-larp-firefox.zip');
+const ffZip = join(outDir, 'larpedin-firefox.zip');
 rmSync(ffZip, { force: true });
 run('zip', ['-r', '-X', '-q', ffZip, '.'], { cwd: join(root, 'dist', 'firefox') });
 
@@ -61,7 +61,7 @@ if (userscripts.length) {
 
 const buf = readFileSync(zipPath);
 const latest = {
-  name: 'Linkedin Larp',
+  name: 'LarpedIn',
   version: manifest.version,
   file: ZIP,
   size: buf.length,

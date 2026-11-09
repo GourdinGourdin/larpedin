@@ -1,9 +1,9 @@
-// Builds Linkedin Larp:
+// Builds LarpedIn:
 //   dist/extension/              unpacked MV3 extension for Chrome, Edge, Brave, Opera
 //   dist/firefox/, dist/safari/  the same files with each browser's manifest
 //   dist/store/*.zip             store uploads (Chrome Web Store / Edge, Firefox AMO, source for AMO)
-//   dist/linkedin-larp-<v>.zip   dist/extension zipped
-//   dist/linkedin-larp.user.js   userscript (page script only, settings in localStorage)
+//   dist/larpedin-<v>.zip   dist/extension zipped
+//   dist/larpedin.user.js   userscript (page script only, settings in localStorage)
 import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -53,12 +53,12 @@ const matches = ['https://www.linkedin.com/*'];
 // content.js runs in the page's MAIN world. Where a browser ignores `world`,
 // content.js notices it is in the isolated world and re-injects itself as a
 // <script> from web_accessible_resources (see src/page/main.ts).
-const GECKO_ID = 'linkedin-larp@linkedin-larp.app'; // permanent once published on AMO
+const GECKO_ID = 'larpedin@larpedin.app'; // permanent once published on AMO
 function manifest(target) {
   const m = {
     manifest_version: 3,
     name: BRAND.name,
-    short_name: 'Larp',
+    short_name: 'LarpedIn',
     version: pkg.version,
     description,
     icons,
@@ -97,19 +97,19 @@ for (const [target, dir] of Object.entries(targets)) {
   writeFileSync(`${dir}/manifest.json`, JSON.stringify(manifest(target), null, 2));
 }
 
-// Store uploads: dist/store/linkedin-larp-<target>-<v>.zip (manifest at the zip root).
+// Store uploads: dist/store/larpedin-<target>-<v>.zip (manifest at the zip root).
 rmSync('dist/store', { recursive: true, force: true });
 mkdirSync('dist/store', { recursive: true });
-for (const target of ['chrome', 'firefox']) zipDir(targets[target], `${process.cwd()}/dist/store/linkedin-larp-${target}-${pkg.version}.zip`);
+for (const target of ['chrome', 'firefox']) zipDir(targets[target], `${process.cwd()}/dist/store/larpedin-${target}-${pkg.version}.zip`);
 // Firefox reviewers ask for the source when the code is bundled.
-execFileSync('git', ['archive', '--format=zip', '-o', `dist/store/linkedin-larp-source-${pkg.version}.zip`, 'HEAD']);
+execFileSync('git', ['archive', '--format=zip', '-o', `dist/store/larpedin-source-${pkg.version}.zip`, 'HEAD']);
 
-const zipName = `linkedin-larp-${pkg.version}.zip`;
+const zipName = `larpedin-${pkg.version}.zip`;
 zipDir(out, `${process.cwd()}/dist/${zipName}`);
 
-writeFileSync('dist/linkedin-larp.user.js', `// ==UserScript==
+writeFileSync('dist/larpedin.user.js', `// ==UserScript==
 // @name         ${BRAND.name}
-// @namespace    linkedin-larp
+// @namespace    larpedin
 // @version      ${pkg.version}
 // @description  ${description}
 // @match        https://www.linkedin.com/*
@@ -119,4 +119,4 @@ writeFileSync('dist/linkedin-larp.user.js', `// ==UserScript==
 ${files['content.js']}`);
 
 const kb = (s) => `${(s.length / 1024).toFixed(1)} KB`;
-console.log(`built ${Object.values(targets).join(', ')} (content ${kb(files['content.js'])}, popup ${kb(files['popup.js'])}), dist/store/, dist/${zipName}, dist/linkedin-larp.user.js`);
+console.log(`built ${Object.values(targets).join(', ')} (content ${kb(files['content.js'])}, popup ${kb(files['popup.js'])}), dist/store/, dist/${zipName}, dist/larpedin.user.js`);

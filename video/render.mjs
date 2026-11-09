@@ -1,5 +1,5 @@
 // Renders scene.html frame by frame and encodes an MP4.
-// Usage: node render.mjs [fps=30] [--stills t1,t2,...]   -> out/linkedin-larp-silent.mp4 (then: node mix.mjs)
+// Usage: node render.mjs [fps=30] [--stills t1,t2,...]   -> out/larpedin-silent.mp4 (then: node mix.mjs)
 import { chromium } from 'playwright-core';
 import ffmpegPath from 'ffmpeg-static';
 import { spawn } from 'node:child_process';
@@ -40,7 +40,7 @@ if (stillsArg) {
 
 const duration = await page.evaluate(() => window.DURATION);
 const total = Math.round(duration * fps);
-const out = join(import.meta.dirname, 'out', 'linkedin-larp-silent.mp4');
+const out = join(import.meta.dirname, 'out', 'larpedin-silent.mp4');
 const ff = spawn(ffmpegPath, [
   '-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
   '-c:v', 'libx264', '-r', String(fps), '-pix_fmt', 'yuv420p', '-preset', 'slow', '-crf', '18', '-movflags', '+faststart', out,

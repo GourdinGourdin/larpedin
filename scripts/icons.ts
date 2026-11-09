@@ -7,7 +7,7 @@ import { chromiumPath } from './chromium.ts';
 
 const out = 'src/extension/icons';
 mkdirSync(out, { recursive: true });
-writeFileSync(`${out}/icon.svg`, markSvg(128, 'Linkedin Larp'));
+writeFileSync(`${out}/icon.svg`, markSvg(128, 'LarpedIn'));
 
 const browser = await chromium.launch({ executablePath: chromiumPath() });
 const page = await browser.newPage({ deviceScaleFactor: 1 });

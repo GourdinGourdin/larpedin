@@ -1,4 +1,4 @@
-// Linkedin Larp site: version info, store buttons per browser, copy button, hero board and the Read → Solve → Play demo.
+// LarpedIn site: version info, store buttons per browser, copy button, hero board and the Read → Solve → Play demo.
 (() => {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
@@ -28,7 +28,7 @@
   const STORES = {
     chrome: '',  // https://chromewebstore.google.com/detail/<id>
     edge: '',    // https://microsoftedge.microsoft.com/addons/detail/<id>
-    firefox: '', // https://addons.mozilla.org/firefox/addon/linkedin-larp/
+    firefox: '', // https://addons.mozilla.org/firefox/addon/larpedin/
     safari: '',  // https://apps.apple.com/app/id<id>
   };
   const MANUAL = { chrome: '#manual-chromium', edge: '#manual-chromium', firefox: '#manual-firefox', safari: '#manual-safari' };
@@ -52,7 +52,7 @@
       if (store !== 'safari') hint = 'On iPhone and iPad, extensions only run in Safari. Open this page in Safari to install.';
       store = 'safari'; name = 'Safari';
     } else if (android && store !== 'firefox') {
-      hint = `${name} on Android can't run extensions. Install Firefox for Android, then add Linkedin Larp from Firefox Add-ons.`;
+      hint = `${name} on Android can't run extensions. Install Firefox for Android, then add LarpedIn from Firefox Add-ons.`;
       store = 'firefox'; name = 'Firefox';
     }
     return { name, store, extPage, mobile, hint };

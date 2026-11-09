@@ -1,7 +1,7 @@
 {
-  "name": "linkedin-larp",
+  "name": "larpedin",
   "version": "1.0.0",
-  "description": "Linkedin Larp: solves LinkedIn's daily puzzle games in the browser. Not affiliated with LinkedIn.",
+  "description": "LarpedIn: solves LinkedIn's daily puzzle games in the browser. Not affiliated with LinkedIn.",
   "main": "index.js",
   "directories": {
     "test": "test"

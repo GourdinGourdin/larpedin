@@ -1,10 +1,10 @@
-// Linkedin Larp visual identity: one place for the palette, so the in-page
+// LarpedIn visual identity: one place for the palette, so the in-page
 // panel, the popup, the welcome page, the website and any video all match.
 // Plain data only (no DOM), safe to import from Node scripts too.
 import type { GameId } from './games.ts';
 
 export const BRAND = {
-  name: 'Linkedin Larp',
+  name: 'LarpedIn',
   tagline: 'Solves the daily LinkedIn puzzles for you, in milliseconds.',
   disclaimer: 'Not affiliated with, endorsed by or connected to LinkedIn.',
   shortcut: 'Alt+S',

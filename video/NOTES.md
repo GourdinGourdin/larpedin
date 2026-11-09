@@ -6,7 +6,7 @@ trends, Flowjam and Vidico launch-video roundups, B2W app-promo examples). These
 - **Hook in the first frame, not after an intro.** Frame 0 already shows the promise ("5 puzzles a day. 0 effort.")
   and all five boards, which solve themselves within about 2 s. The first frame works as a thumbnail, and there is no logo sting.
 - **Show the product working early, and sell the outcome.** Real boards are solved by the real solvers by second 1.
-  The brand name comes in only after the payoff ("Let Linkedin Larp play them for you").
+  The brand name comes in only after the payoff ("Let LarpedIn play them for you").
 - **Captions burned in for sound-off viewing.** Chunks of 1–3 words sit in the lower-middle safe zone, outside the platform UI
   at the bottom. The spoken word is highlighted. Game names are highlighted in each game's own colour, so the captions also
   teach the colour coding.

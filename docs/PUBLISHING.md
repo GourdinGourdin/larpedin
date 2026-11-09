@@ -1,4 +1,4 @@
-# Publishing Linkedin Larp to the browser stores
+# Publishing LarpedIn to the browser stores
 
 A one-click install, where the extension sets itself up and appears in the browser's
 extension list, only comes from a browser's own store. A zip from a website can't do it:
@@ -10,9 +10,9 @@ an upload and a review. Only you can create the accounts.
 
 | Store | Covers | Upload | Account |
 |---|---|---|---|
-| Chrome Web Store | Chrome, Brave, Opera, Arc, Vivaldi (Windows, Mac, Linux, ChromeOS) | `dist/store/linkedin-larp-chrome-<v>.zip` | One-time $5 developer fee, chrome.google.com/webstore/devconsole |
+| Chrome Web Store | Chrome, Brave, Opera, Arc, Vivaldi (Windows, Mac, Linux, ChromeOS) | `dist/store/larpedin-chrome-<v>.zip` | One-time $5 developer fee, chrome.google.com/webstore/devconsole |
 | Microsoft Edge Add-ons | Edge (Windows, Mac) | the same Chrome zip | Free, partner.microsoft.com (Edge can also install from the Chrome Web Store) |
-| Firefox Add-ons (AMO) | Firefox desktop **and Firefox for Android** | `dist/store/linkedin-larp-firefox-<v>.zip`, plus `linkedin-larp-source-<v>.zip` when asked for source | Free, addons.mozilla.org/developers |
+| Firefox Add-ons (AMO) | Firefox desktop **and Firefox for Android** | `dist/store/larpedin-firefox-<v>.zip`, plus `larpedin-source-<v>.zip` when asked for source | Free, addons.mozilla.org/developers |
 | Apple App Store | Safari on **Mac, iPhone, iPad** | Xcode project from `sh scripts/safari.sh` | Apple Developer Program, $99/year, plus full Xcode |
 
 Phones: Chrome for Android and every iPhone browser other than Safari can't run
@@ -27,7 +27,7 @@ users through the App Store app and Safari.
    single-purpose description. Review takes from a day to a few weeks.
 2. **Edge Add-ons.** Same zip, same listing text.
 3. **Firefox.** Submit the Firefox zip "On this site". The add-on id
-   (`linkedin-larp@linkedin-larp.app`, in `scripts/build.mjs`) is permanent once
+   (`larpedin@larpedin.app`, in `scripts/build.mjs`) is permanent once
    published: change it first if you want your own domain in it. Tick Android
    compatibility so it shows up in Firefox for Android.
 4. **Safari.** Install Xcode from the Mac App Store, run
@@ -40,9 +40,9 @@ users through the App Store app and Safari.
 
 ## Review risks
 
-- **The name.** "Linkedin Larp" contains LinkedIn's trademark. Store reviewers
-  often reject that, or LinkedIn can file a takedown. A name without "LinkedIn" in it
-  (describing it as "for LinkedIn games" in the text) has a much better chance.
+- **The name.** "LarpedIn" no longer contains the word LinkedIn, which helps a lot, but it
+  still plays on it. Keep the "not affiliated with LinkedIn" line in every listing and
+  don't use LinkedIn's logo or blue in screenshots or icons.
 - **Automation.** The extension plays another site's games for the user. Stores allow
   that in principle, but LinkedIn's User Agreement restricts automation, so a complaint
   could lead to removal.

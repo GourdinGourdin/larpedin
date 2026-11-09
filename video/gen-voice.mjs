@@ -19,13 +19,13 @@ const BEAT = 60 / BPM;
 // say: what Kokoro reads; cap: what is burned in as captions (same words).
 // hold: extra seconds of visuals after the line before the next one may start.
 const LINES = [
-  { id: 'hook',  say: 'Five LinkedIn puzzles every day? Let LinkedIn Larp play them for you.', cap: 'Five LinkedIn puzzles every day? Let Linkedin Larp play them for you.', hold: 0.3 },
+  { id: 'hook',  say: 'Five LinkedIn puzzles every day? Let Larped In play them for you.', cap: 'Five LinkedIn puzzles every day? Let LarpedIn play them for you.', hold: 0.3 },
   { id: 'read',  say: 'Step one: it reads the board straight from the page. No screenshots.', hold: 0.9 },
   { id: 'solve', say: 'Step two: it tries every move, and prunes the dead ends, in a blink.', hold: 1.3 },
   { id: 'play',  say: 'Step three: it plays the answer for you, in one smooth drag.', hold: 0.9 },
   { id: 'all',   say: 'Same trick for Zip, Queens, Tango, and Patches.', hold: 0.6 },
   { id: 'wend',  say: 'And it already snakes through the brand new Wend.', hold: 2.6 },
-  { id: 'outro', say: 'LinkedIn Larp. Reads. Solves. Plays. Which puzzle should it beat next?', cap: 'Linkedin Larp. Reads. Solves. Plays. Which puzzle should it beat next?', hold: 2.4 },
+  { id: 'outro', say: 'Larped In. Reads. Solves. Plays. Which puzzle should it beat next?', cap: 'LarpedIn. Reads. Solves. Plays. Which puzzle should it beat next?', hold: 2.4 },
 ];
 
 const tts = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', { dtype: 'q8', device: 'cpu' });

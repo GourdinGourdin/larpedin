@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Linkedin Larp explainer</title>
+<title>LarpedIn explainer</title>
 <style>
   html, body { margin: 0; background: #F7F1E5; }
   canvas { display: block; }
@@ -191,19 +191,19 @@ function mark(x, y, size, k = 1) {
   if (d > 0) { ctx.fillStyle = P.logoDot; ctx.beginPath(); ctx.arc(46, 46, 7 * d, 0, Math.PI * 2); ctx.fill(); }
   ctx.restore();
 }
-// wordmark: brand mark + "Linkedin Larp" with a five-colour underline (one stripe per game)
+// wordmark: brand mark + "LarpedIn" with a five-colour underline (one stripe per game)
 function wordmark(cx, y, size, k, maxW = 980) {
   if (k <= 0) return;
-  const tw = (s) => measure('Linkedin Larp', s, 900) + s * 1.12;
+  const tw = (s) => measure('LarpedIn', s, 900) + s * 1.12;
   let s = size;
   if (tw(s) > maxW) s = size * maxW / tw(s);
-  const w = measure('Linkedin Larp', s, 900), ms = s * 0.92, total = w + s * 1.12;
+  const w = measure('LarpedIn', s, 900), ms = s * 0.92, total = w + s * 1.12;
   ctx.save();
   ctx.globalAlpha *= clamp(k * 1.5);
   ctx.translate(cx, y); ctx.scale(lerp(0.85, 1, eBack(clamp(k))), lerp(0.85, 1, eBack(clamp(k))));
   mark(-total / 2, -s * 0.8, ms, prog(k, 0.1, 1));
   const tx = -total / 2 + s * 1.12;
-  text('Linkedin Larp', tx, 0, { size: s, weight: 900, align: 'left' });
+  text('LarpedIn', tx, 0, { size: s, weight: 900, align: 'left' });
   const seg = w / 5;
   GAMES.forEach(([, key], i) => {
     const a = clamp(k * 5 - i * 0.6);
@@ -663,7 +663,7 @@ function sceneOutro(t) {
     text('Tell me in the comments', W / 2, 1335, { size: 30, weight: 600, color: P.faint });
     ctx.restore();
   }
-  text('Chrome extension · Not affiliated with LinkedIn', W / 2, 1470, { size: 30, weight: 600, color: P.dim, alpha: prog(t, a + 0.6, a + 1.0) });
+  text('Browser extension · Not affiliated with LinkedIn', W / 2, 1470, { size: 30, weight: 600, color: P.dim, alpha: prog(t, a + 0.6, a + 1.0) });
   ctx.restore();
   // final fade to paper
   const out = prog(t, DURATION - 0.4, DURATION);

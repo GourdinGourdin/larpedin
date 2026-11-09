@@ -96,7 +96,7 @@ async function newPage(opts: { dark?: boolean; w?: number; h?: number } = {}) {
   return ctx.newPage();
 }
 async function shotPanel(page: Page, name: string, pad = 16) {
-  const box = (await page.locator('linkedin-larp-panel').boundingBox())!;
+  const box = (await page.locator('larpedin-panel').boundingBox())!;
   const vp = page.viewportSize()!;
   const x = Math.max(0, box.x - pad), y = Math.max(0, box.y - pad);
   await page.screenshot({
@@ -105,7 +105,7 @@ async function shotPanel(page: Page, name: string, pad = 16) {
   });
   shots.push(name);
 }
-const phase = (page: Page) => page.locator('linkedin-larp-panel .card').getAttribute('data-phase');
+const phase = (page: Page) => page.locator('larpedin-panel .card').getAttribute('data-phase');
 
 // 1. Real end-to-end on the mock Queens board: idle -> done.
 for (const dark of [false, true]) {
@@ -113,11 +113,11 @@ for (const dark of [false, true]) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`${base}/games/queens/`);
-  await page.locator('linkedin-larp-panel .card').waitFor();
+  await page.locator('larpedin-panel .card').waitFor();
   if (!dark) await shotPanel(page, 'panel-idle');
-  await page.locator('linkedin-larp-panel #ll-solve').click();
+  await page.locator('larpedin-panel #ll-solve').click();
   await page.waitForFunction(() => {
-    const c = document.querySelector('linkedin-larp-panel')!.shadowRoot!.querySelector('.card') as HTMLElement;
+    const c = document.querySelector('larpedin-panel')!.shadowRoot!.querySelector('.card') as HTMLElement;
     return c.dataset.phase === 'done' || c.dataset.phase === 'error';
   });
   const p = await phase(page);
@@ -139,10 +139,10 @@ for (const dark of [false, true]) {
 {
   const page = await newPage();
   await page.goto(`${base}/games/tango/`);
-  await page.locator('linkedin-larp-panel #ll-solve').click();
+  await page.locator('larpedin-panel #ll-solve').click();
   await page.waitForFunction(() =>
-    (document.querySelector('linkedin-larp-panel')!.shadowRoot!.querySelector('.card') as HTMLElement).dataset.phase === 'error');
-  console.log('error msg:', await page.locator('linkedin-larp-panel .msg-text').textContent());
+    (document.querySelector('larpedin-panel')!.shadowRoot!.querySelector('.card') as HTMLElement).dataset.phase === 'error');
+  console.log('error msg:', await page.locator('larpedin-panel .msg-text').textContent());
   await shotPanel(page, 'panel-error');
   await page.context().close();
 }
@@ -151,19 +151,19 @@ for (const dark of [false, true]) {
 {
   const page = await newPage();
   await page.goto(`${base}/games/zip/`);
-  await page.locator('linkedin-larp-panel #ll-gear').click();
+  await page.locator('larpedin-panel #ll-gear').click();
   await shotPanel(page, 'panel-settings-zip');
   // drag by the header
-  const head = (await page.locator('linkedin-larp-panel .head').boundingBox())!;
+  const head = (await page.locator('larpedin-panel .head').boundingBox())!;
   await page.mouse.move(head.x + 120, head.y + 20);
   await page.mouse.down();
   await page.mouse.move(head.x + 420, head.y - 60, { steps: 6 });
   await page.mouse.up();
-  await page.locator('linkedin-larp-panel #ll-min').click();
+  await page.locator('larpedin-panel #ll-min').click();
   await shotPanel(page, 'panel-pill', 12);
   await page.reload();
-  await page.locator('linkedin-larp-panel .pill').waitFor();
-  const pill = (await page.locator('linkedin-larp-panel').boundingBox())!;
+  await page.locator('larpedin-panel .pill').waitFor();
+  const pill = (await page.locator('larpedin-panel').boundingBox())!;
   console.log(`after reload: collapsed pill at x=${Math.round(pill.x)} (moved from 16)`);
   await page.context().close();
 }

@@ -21,9 +21,9 @@ const check = (cond, msg) => { console.log(`${cond ? 'ok  ' : 'FAIL'} ${msg}`); 
 const browser = await launch();
 try {
   // ---- download + latest.json over HTTP ----
-  const zip = await fetch(BASE + 'downloads/linkedin-larp.zip');
+  const zip = await fetch(BASE + 'downloads/larpedin.zip');
   const buf = Buffer.from(await zip.arrayBuffer());
-  check(zip.status === 200, `GET downloads/linkedin-larp.zip -> ${zip.status}`);
+  check(zip.status === 200, `GET downloads/larpedin.zip -> ${zip.status}`);
   check(zip.headers.get('content-type') === 'application/zip', `zip content-type ${zip.headers.get('content-type')}`);
   check(buf.subarray(0, 2).toString() === 'PK', `zip starts with PK (${buf.length} bytes)`);
   const latest = await (await fetch(BASE + 'downloads/latest.json')).json();
@@ -56,9 +56,9 @@ try {
       const detected = await page.getAttribute('.store.is-detected', 'data-store');
       check(detected === 'chrome', `detected store ${detected}`);
       const href = await page.getAttribute('#install [data-download]', 'href');
-      check(href === 'downloads/linkedin-larp.zip', `download href ${href}`);
+      check(href === 'downloads/larpedin.zip', `download href ${href}`);
       const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#install [data-download]')]);
-      check(dl.suggestedFilename() === 'linkedin-larp.zip', `clicking Download saves ${dl.suggestedFilename()}`);
+      check(dl.suggestedFilename() === 'larpedin.zip', `clicking Download saves ${dl.suggestedFilename()}`);
       // demo frames
       await page.locator('#how').scrollIntoViewIfNeeded();
       for (const [i, label] of [[0, 'read'], [1, 'solve'], [2, 'play']]) {

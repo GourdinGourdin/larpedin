@@ -172,7 +172,7 @@ export class Panel {
   private $ = <T extends Element = HTMLElement>(sel: string) => this.root.querySelector(sel) as T;
 
   constructor(private h: PanelHandlers, settings: Settings) {
-    this.host = document.createElement('linkedin-larp-panel');
+    this.host = document.createElement('larpedin-panel');
     this.root = this.host.attachShadow({ mode: 'open' });
     this.root.innerHTML = this.template();
     this.settings = settings;
@@ -205,7 +205,7 @@ export class Panel {
     this.host.style.setProperty('--acc-l', t.accent);
     this.host.style.setProperty('--acc-d', t.accentDark);
     this.$('.game-name').textContent = id ? t.name : 'No puzzle on this page';
-    this.$('.pill-name').textContent = id ? t.name : 'Larp';
+    this.$('.pill-name').textContent = id ? t.name : 'LarpedIn';
     this.renderSettings();
   }
 
@@ -269,7 +269,7 @@ export class Panel {
   </div>
 </section>
 <button class="pill" type="button" data-phase="idle" aria-label="Open ${BRAND.name} panel" title="Click to open, drag to move" hidden>
-  <span class="mark">${markSvg(28)}</span><span class="pill-name">Larp</span><span class="state" aria-hidden="true"></span>
+  <span class="mark">${markSvg(28)}</span><span class="pill-name">LarpedIn</span><span class="state" aria-hidden="true"></span>
   <span class="sr pill-status"></span>
 </button>`;
   }
@@ -343,7 +343,7 @@ export class Panel {
         label.textContent = 'Copied';
       } catch {
         // Clipboard can be blocked; fall back to the console.
-        console.log('[Linkedin Larp] debug info\n' + this.h.debugInfo());
+        console.log('[LarpedIn] debug info\n' + this.h.debugInfo());
         label.textContent = 'Printed to console';
       }
       setTimeout(() => { label.textContent = 'Copy debug info'; }, 1800);

@@ -75,8 +75,8 @@ export function fmtMs(ms: number): string {
 
 // ---------- page <-> bridge protocol ----------
 
-export const FROM_PAGE = 'linkedin-larp/page';
-export const FROM_BRIDGE = 'linkedin-larp/bridge';
+export const FROM_PAGE = 'larpedin/page';
+export const FROM_BRIDGE = 'larpedin/bridge';
 
 export type Phase = 'idle' | 'reading' | 'solving' | 'playing' | 'done' | 'error';
 

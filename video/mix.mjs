@@ -1,6 +1,6 @@
 // Mixes narration + music and muxes them onto the silent render.
-//   in:  out/linkedin-larp-silent.mp4, out/audio/voice.wav, out/audio/music.wav
-//   out: out/audio/mix.wav, out/linkedin-larp.mp4 (H.264 copy + AAC 192k)
+//   in:  out/larpedin-silent.mp4, out/audio/voice.wav, out/audio/music.wav
+//   out: out/audio/mix.wav, out/larpedin.mp4 (H.264 copy + AAC 192k)
 // Music is side-chain ducked under the voice, then the mix is loudness-normalised
 // to -14 LUFS (measured with loudnorm, applied as one static gain) with a -1.5 dBTP limiter and fades.
 import ffmpegPath from 'ffmpeg-static';
@@ -38,10 +38,10 @@ ff(['-i', join(A, 'premix.wav'), '-af',
   `afade=t=in:st=0:d=0.15,afade=t=out:st=${(dur - 1.2).toFixed(2)}:d=1.2,aformat=sample_fmts=s16:channel_layouts=stereo`,
   join(A, 'mix.wav')]);
 // 4) mux
-ff(['-i', join(OUT, 'linkedin-larp-silent.mp4'), '-i', join(A, 'mix.wav'), '-map', '0:v', '-map', '1:a',
-  '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', join(OUT, 'linkedin-larp.mp4')]);
+ff(['-i', join(OUT, 'larpedin-silent.mp4'), '-i', join(A, 'mix.wav'), '-map', '0:v', '-map', '1:a',
+  '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', join(OUT, 'larpedin.mp4')]);
 // report
-const r = ff(['-i', join(OUT, 'linkedin-larp.mp4'), '-af', 'ebur128=peak=true', '-f', 'null', '-'], true);
+const r = ff(['-i', join(OUT, 'larpedin.mp4'), '-af', 'ebur128=peak=true', '-f', 'null', '-'], true);
 const sum = r.slice(r.lastIndexOf('Summary:'));
 console.log(`input ${j.input_i} LUFS -> ${(sum.match(/I:\s+(-?[\d.]+) LUFS/) || [])[1]} LUFS, true peak ${(sum.match(/Peak:\s+(-?[\d.]+) dBFS/) || [])[1]} dBFS`);
-console.log('wrote', join(OUT, 'linkedin-larp.mp4'));
+console.log('wrote', join(OUT, 'larpedin.mp4'));

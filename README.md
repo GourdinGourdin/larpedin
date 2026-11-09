@@ -1,8 +1,8 @@
-# Linkedin Larp
+# LarpedIn
 
 Reads, solves and plays LinkedIn's daily puzzles (**Zip**, **Queens**, **Tango**, **Patches**, and **Wend** as it lands) inside the page.
 
-> Linkedin Larp is an independent fan project. It is **not affiliated with, endorsed by or connected to LinkedIn**.
+> LarpedIn is an independent fan project. It is **not affiliated with, endorsed by or connected to LinkedIn**.
 
 ![The panel after solving Queens](docs/screenshots/panel-done.png)
 
@@ -35,7 +35,7 @@ The build writes one package per browser family:
   `about:debugging` > **Load Temporary Add-on**.
 - `dist/safari/`: input for `sh scripts/safari.sh`, which needs full Xcode and makes a macOS + iOS app.
 - `dist/store/`: the zips to upload to each store. [docs/PUBLISHING.md](docs/PUBLISHING.md) covers accounts, fees and review.
-- `dist/linkedin-larp.user.js`: a userscript for Tampermonkey (panel only).
+- `dist/larpedin.user.js`: a userscript for Tampermonkey (panel only).
 
 A welcome page opens on install. Reload any LinkedIn tab that was already open.
 

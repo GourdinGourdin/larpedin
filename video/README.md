@@ -1,4 +1,4 @@
-# Linkedin Larp: explainer video
+# LarpedIn: explainer video
 
 A 1080×1920, 30 fps vertical video (~37 s) with a Kokoro voice-over, burned-in captions
 and a synthesized lo-fi bed. Every frame is a pure function of time (`renderAt(t)` in
@@ -21,8 +21,8 @@ The renderer uses Playwright's Chromium from `~/Library/Caches/ms-playwright`
 | 1. puzzle data | `node make-data.ts` | `data.js` (fixtures + real solvers + Wend) |
 | 2. voice-over | `node gen-voice.mjs [voice]` | `out/audio/voice.wav`, `timeline.js` |
 | 3. music | `node gen-music.mjs` | `out/audio/music.wav` |
-| 4. video | `node render.mjs` | `out/linkedin-larp-silent.mp4` |
-| 5. mix + mux | `node mix.mjs` | `out/audio/mix.wav`, `out/linkedin-larp.mp4` |
+| 4. video | `node render.mjs` | `out/larpedin-silent.mp4` |
+| 5. mix + mux | `node mix.mjs` | `out/audio/mix.wav`, `out/larpedin.mp4` |
 
 `data.js` and `timeline.js` are committed, so steps 4–5 work without downloading the model.
 Re-run 2→5 after editing the script in `gen-voice.mjs` (scene timing follows the voice).
