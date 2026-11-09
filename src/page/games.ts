@@ -43,6 +43,12 @@ export const zip: Game<ZipPuzzle, number[]> = {
   },
 };
 
+const QUEEN_SEL = '[data-testid="queen-svg"]';
+const CROSS_SEL = '[data-testid="cross-svg"]';
+/** Taps that take a Queens cell to a queen (cycle: empty -> X -> queen). */
+const queenTapsNeeded = (el: Element) =>
+  el.querySelector(QUEEN_SEL) ? 0 : el.querySelector(CROSS_SEL) ? 1 : 2;
+
 export const queens: Game<QueensPuzzle, number[]> = {
   read(grid) {
     const cells = getCells(grid);
@@ -51,13 +57,31 @@ export const queens: Game<QueensPuzzle, number[]> = {
   },
   solve: solveQueens,
   async play(grid, p, cols) {
-    const cells = getCells(grid);
-    for (let r = 0; r < p.size; r++) {
-      const el = cells[r * p.size + cols[r]];
-      // empty -> X -> queen; stop as soon as the queen shows
-      for (let i = 0; i < 3 && !el.querySelector('[data-testid="queen-svg"]'); i++) {
-        tap(el);
+    // Only the queen cells are touched. Taps go out back to back, with just a
+    // microtask between taps on the same cell: React flushes click updates in
+    // a microtask, so the second tap sees the X from the first without
+    // waiting for a frame. Then verify, and retry only the cells still missing.
+    const targets = cols.map((c, r) => r * p.size + c);
+    let cells = getCells(grid);
+    let todo = targets;
+    for (let attempt = 0; attempt < 4 && todo.length; attempt++) {
+      for (const i of todo) {
+        // Count the taps from the cell's state before tapping: if a render
+        // lags, re-reading between taps could push the cell past the queen.
+        const n = queenTapsNeeded(cells[i]);
+        for (let t = 0; t < n; t++) {
+          if (t) await Promise.resolve();
+          tap(cells[i]);
+        }
+      }
+      // Verify after a frame; before re-tapping, give a slow render one more
+      // frame so a pending update is not tapped past the queen.
+      for (let wait = 0; wait < 2; wait++) {
         await nextFrame();
+        if (!grid.isConnected) return; // board replaced (e.g. puzzle solved)
+        cells = getCells(grid);
+        todo = targets.filter((i) => cells[i] && queenTapsNeeded(cells[i]) > 0);
+        if (!todo.length) return;
       }
     }
   },
