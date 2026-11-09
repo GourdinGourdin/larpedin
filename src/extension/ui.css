@@ -1,0 +1,73 @@
+/* Shared styles for the popup and the welcome page. Colours come from
+   theme.ts, injected at runtime as --ll-* variables (see common.ts). */
+:root { color-scheme: light dark; }
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--ll-bg); color: var(--ll-ink);
+  font: 14px/1.5 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--ll-focus); outline-offset: 2px; border-radius: 8px; }
+h1, h2, h3, p { margin: 0; }
+
+.mark svg { display: block; }
+@media (prefers-color-scheme: dark) { .mark svg rect { stroke: #4A423A; stroke-width: 2; } }
+.sub { display: block; font-size: 12px; font-weight: 400; color: var(--ll-muted); }
+.muted { color: var(--ll-muted); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); flex: none; }
+
+.card { background: var(--ll-surface); border: 1px solid var(--ll-border); border-radius: 14px; }
+
+kbd {
+  display: inline-block; font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 4px 6px; border-radius: 6px; background: var(--ll-surface2);
+  border: 1px solid var(--ll-border); border-bottom-width: 2px; color: var(--ll-ink);
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 40px; padding: 0 16px; border: 0; border-radius: 10px;
+  background: var(--acc); color: var(--on-acc); font-weight: 700; text-decoration: none;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .5; cursor: not-allowed; filter: none; }
+.ghost {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
+  border-radius: 8px; border: 1px solid var(--ll-border); background: var(--ll-surface);
+  font-size: 13px; font-weight: 600; text-decoration: none;
+}
+.ghost:hover { background: var(--ll-surface2); }
+.linkish { border: 0; background: none; padding: 0; color: var(--ll-muted); text-decoration: underline; font-size: 12px; }
+.linkish:hover { color: var(--ll-ink); }
+
+.switch {
+  appearance: none; -webkit-appearance: none; flex: none; margin: 0; width: 38px; height: 22px; border-radius: 11px;
+  background: var(--ll-border); position: relative; cursor: pointer; transition: background .15s;
+}
+.switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s;
+}
+.switch:checked { background: var(--acc); }
+.switch:checked::after { transform: translateX(16px); }
+.switch:focus-visible { border-radius: 11px; }
+
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 600; }
+
+fieldset.field { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+fieldset.field legend { padding: 0; margin-bottom: 6px; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
+fieldset.field legend .sub { flex-basis: 100%; }
+.seg { display: flex; background: var(--ll-surface2); border-radius: 9px; padding: 3px; gap: 3px; }
+.seg label { flex: 1; position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; text-align: center; padding: 5px 8px; border-radius: 7px; font-size: 13px; color: var(--ll-muted); }
+.seg input:checked + span { background: var(--ll-surface); color: var(--ll-ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.seg input:focus-visible + span { outline: 2px solid var(--ll-focus); outline-offset: 1px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
