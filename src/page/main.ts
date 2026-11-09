@@ -1,20 +1,29 @@
-// Entry point injected into linkedin.com/games/* pages.
-// - Small panel: "Solve" button (Alt+S), auto-solve toggle, timing readout.
+// Linkedin Larp: entry point injected into linkedin.com pages (main world).
+// - Floating panel (panel.ts): Solve (Alt+S), auto-solve, per-game settings.
 // - Every puzzle seen is saved to localStorage so you build your own archive;
-//   "Export" downloads it as JSON for the test suite.
+//   "Export puzzles" downloads it as JSON for the test suite.
+// - In the extension, settings sync with chrome.storage through bridge.ts;
+//   in the userscript they live in localStorage only.
 import { getGrid, getCells } from './dom.ts';
-import { GAMES, currentGame, type GameId, type PlayOptions } from './games.ts';
+import { GAMES, currentGame, type GameId } from './games.ts';
+import { Panel, fmtMs } from './panel.ts';
+import {
+  FROM_BRIDGE, FROM_PAGE, sanitizeSettings,
+  type BridgeMsg, type PageMsg, type Settings, type Status, type Timings,
+} from './settings.ts';
+
+declare const __LARP_VERSION__: string;
+type PageBody = PageMsg extends infer M ? M extends PageMsg ? Omit<M, 'source'> : never : never;
+const VERSION = typeof __LARP_VERSION__ === 'string' ? __LARP_VERSION__ : 'dev';
 
 const STORE = 'lgs-archive';
 const OPTS = 'lgs-options';
+const PATCHES_PACE = 'lgs-patches-pace';
 
-interface Options extends PlayOptions { auto: boolean }
-
-function loadOpts(): Options {
-  try { return { auto: false, zipInput: 'mouse', ...JSON.parse(localStorage.getItem(OPTS) || '{}') }; }
-  catch { return { auto: false, zipInput: 'mouse' }; }
+function loadSettings(): Settings {
+  try { return sanitizeSettings(JSON.parse(localStorage.getItem(OPTS) || '{}')); }
+  catch { return sanitizeSettings({}); }
 }
-function saveOpts(o: Options) { try { localStorage.setItem(OPTS, JSON.stringify(o)); } catch {} }
 
 function archive(game: GameId, puzzle: unknown) {
   try {
@@ -38,89 +47,158 @@ function alreadySolved(game: GameId, grid: HTMLElement): boolean {
   return false;
 }
 
-let busy = false;
+function boot() {
+  const w = window as any;
+  if (w.__linkedinLarp) return; // injected twice (extension + userscript)
+  w.__linkedinLarp = VERSION;
 
-async function run(reason: string) {
-  const game = currentGame();
-  const grid = getGrid();
-  if (!game || !grid || busy) return;
-  busy = true;
-  const opts = loadOpts();
-  try {
-    const g = GAMES[game];
-    const t0 = performance.now();
-    const puzzle = g.read(grid);
-    const t1 = performance.now();
-    const sol = g.solve(puzzle);
-    const t2 = performance.now();
-    if (!sol) { report(`${game}: no solution found`); return; }
-    archive(game, puzzle);
-    await g.play(grid, puzzle, sol, opts);
-    const t3 = performance.now();
-    const msg = `${game} (${reason}): read ${(t1 - t0).toFixed(1)} ms · solve ${(t2 - t1).toFixed(1)} ms · ` +
-      `input ${(t3 - t2).toFixed(1)} ms · total ${(t3 - t0).toFixed(1)} ms`;
-    console.log('[lgs]', msg, { puzzle, sol });
-    report(msg);
-  } catch (e) {
-    console.error('[lgs]', e);
-    report(`${game}: error: ${(e as Error).message}`);
-  } finally {
-    busy = false;
+  let settings = loadSettings();
+  let status: Status = { game: null, phase: 'idle' };
+  let lastError: unknown = null;
+  let lastPuzzle: unknown = null;
+  let busy = false;
+
+  const post = (m: PageBody) => window.postMessage({ source: FROM_PAGE, ...m }, location.origin);
+
+  function applySettings(next: Settings, fromBridge: boolean) {
+    settings = next;
+    try {
+      localStorage.setItem(OPTS, JSON.stringify(next));
+      localStorage.setItem(PATCHES_PACE, next.patchesPace);
+    } catch {}
+    panel.setSettings(next);
+    if (!fromBridge) post({ type: 'settings', settings: next });
   }
-}
 
-// ---------- panel ----------
-let out: HTMLElement | null = null;
-function report(s: string) { if (out) out.textContent = s; }
+  function setStatus(s: Status) {
+    status = s;
+    panel.setStatus(s);
+    post({ type: 'status', status: s });
+  }
 
-function panel() {
-  if (document.getElementById('lgs-panel')) return;
-  const box = document.createElement('div');
-  box.id = 'lgs-panel';
-  box.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:99999;background:#111;color:#eee;' +
-    'font:12px/1.4 ui-monospace,monospace;padding:8px 10px;border-radius:8px;max-width:340px;box-shadow:0 2px 8px #0006';
-  const opts = loadOpts();
-  box.innerHTML = `
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-      <b>Solver</b>
-      <button id="lgs-solve">Solve (Alt+S)</button>
-      <label><input type="checkbox" id="lgs-auto" ${opts.auto ? 'checked' : ''}> auto</label>
-      <select id="lgs-zip"><option value="mouse">zip: drag</option><option value="keyboard">zip: keys</option></select>
-      <button id="lgs-export">Export</button>
-    </div>
-    <div id="lgs-out" style="margin-top:4px;opacity:.85">ready</div>`;
-  document.body.appendChild(box);
-  out = box.querySelector('#lgs-out');
-  (box.querySelector('#lgs-zip') as HTMLSelectElement).value = opts.zipInput ?? 'mouse';
-  box.querySelector('#lgs-solve')!.addEventListener('click', () => run('button'));
-  box.querySelector('#lgs-auto')!.addEventListener('change', (e) =>
-    saveOpts({ ...loadOpts(), auto: (e.target as HTMLInputElement).checked }));
-  box.querySelector('#lgs-zip')!.addEventListener('change', (e) =>
-    saveOpts({ ...loadOpts(), zipInput: (e.target as HTMLSelectElement).value as 'mouse' | 'keyboard' }));
-  box.querySelector('#lgs-export')!.addEventListener('click', () => {
+  function debugInfo(): string {
+    const grid = getGrid();
+    const err = lastError as Error | null;
+    return JSON.stringify({
+      app: `Linkedin Larp ${VERSION}`,
+      when: new Date().toISOString(),
+      page: location.pathname,
+      userAgent: navigator.userAgent,
+      game: currentGame(),
+      status,
+      settings,
+      grid: grid ? { cells: getCells(grid).length, testid: grid.dataset.testid } : null,
+      error: err ? { message: String(err.message ?? err), stack: err.stack?.split('\n').slice(0, 8) } : null,
+      puzzle: lastPuzzle,
+    }, null, 2);
+  }
+
+  function exportArchive() {
     const blob = new Blob([localStorage.getItem(STORE) || '{}'], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `linkedin-puzzles-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  async function run(reason: string) {
+    const game = currentGame();
+    if (!game || busy) return;
+    const name = game[0].toUpperCase() + game.slice(1);
+    const grid = getGrid();
+    if (!grid) {
+      setStatus({ game, phase: 'error', message: `No ${name} board found yet. Open today's puzzle and press Start, then try again.` });
+      return;
+    }
+    busy = true;
+    lastError = null;
+    const g = GAMES[game];
+    let phase: 'reading' | 'solving' | 'playing' = 'reading';
+    try {
+      setStatus({ game, phase });
+      const t0 = performance.now();
+      const puzzle = g.read(grid);
+      lastPuzzle = puzzle;
+      const t1 = performance.now();
+      setStatus({ game, phase: phase = 'solving' });
+      const sol = g.solve(puzzle);
+      const t2 = performance.now();
+      if (!sol) {
+        setStatus({ game, phase: 'error', message: `No solution found for this ${name} board. The board may have been read wrong: copy the debug info and file an issue.` });
+        return;
+      }
+      archive(game, puzzle);
+      setStatus({ game, phase: phase = 'playing' });
+      await g.play(grid, puzzle, sol, settings);
+      const t3 = performance.now();
+      const timings: Timings = { read: t1 - t0, solve: t2 - t1, play: t3 - t2, total: t3 - t0 };
+      console.log(`[Linkedin Larp] ${game} (${reason})`, timings, { puzzle, sol });
+      setStatus({ game, phase: 'done', timings, message: `Solved in ${fmtMs(timings.total)}` });
+    } catch (e) {
+      lastError = e;
+      console.error('[Linkedin Larp]', e);
+      const what = phase === 'reading' ? 'read the board' : phase === 'solving' ? 'solve the puzzle' : 'play the answer';
+      setStatus({ game, phase: 'error', message: `Couldn't ${what}: ${(e as Error)?.message ?? e}` });
+    } finally {
+      busy = false;
+    }
+  }
+
+  const panel = new Panel({
+    onSolve: () => run('button'),
+    onSettings: (patch) => applySettings(sanitizeSettings({ ...settings, ...patch }), false),
+    onExport: exportArchive,
+    debugInfo,
+  }, settings);
+
+  // ---------- bridge (extension only) ----------
+  window.addEventListener('message', (e) => {
+    if (e.source !== window) return;
+    const m = e.data as BridgeMsg;
+    if (!m || m.source !== FROM_BRIDGE) return;
+    if (m.type === 'settings') applySettings(sanitizeSettings(m.settings), true);
+    else if (m.type === 'hello') { post({ type: 'hello', settings }); post({ type: 'status', status }); }
+    else if (m.type === 'solve' && currentGame()) { panel.expand(); run('shortcut'); }
   });
+  post({ type: 'hello', settings });
+
+  // ---------- wiring ----------
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyS' && currentGame()) {
+      e.preventDefault();
+      run('hotkey');
+    }
+  }, true);
+
+  let lastGrid: HTMLElement | null = null;
+  let lastGame: string | null = null;
+  const tick = () => {
+    const game = currentGame();
+    if (game !== lastGame) {
+      lastGame = game;
+      lastGrid = null;
+      if (game) {
+        panel.setGame(game);
+        setStatus({ game, phase: 'idle', message: 'Waiting for the board…' });
+      } else {
+        status = { game: null, phase: 'idle' };
+        post({ type: 'status', status });
+      }
+    }
+    if (!game) { panel.hide(); return; }
+    if (document.body) panel.show();
+    const grid = getGrid();
+    if (grid && grid !== lastGrid) {
+      lastGrid = grid;
+      if (!busy) setStatus({ game, phase: 'idle', message: settings.auto ? 'Board found.' : 'Board found. Ready when you are.' });
+      // record the puzzle even if we don't play it
+      try { archive(game, GAMES[game].read(grid)); } catch {}
+      if (settings.auto && !alreadySolved(game, grid)) run('auto');
+    }
+  };
+  new MutationObserver(tick).observe(document.documentElement, { childList: true, subtree: true });
+  tick();
 }
 
-// ---------- wiring ----------
-document.addEventListener('keydown', (e) => {
-  if (e.altKey && e.code === 'KeyS') { e.preventDefault(); run('hotkey'); }
-});
-
-let lastGrid: HTMLElement | null = null;
-new MutationObserver(() => {
-  if (!currentGame()) return;
-  if (document.body) panel();
-  const grid = getGrid();
-  if (grid && grid !== lastGrid) {
-    lastGrid = grid;
-    const game = currentGame()!;
-    // record the puzzle even if we don't play it
-    try { archive(game, GAMES[game].read(grid)); } catch {}
-    if (loadOpts().auto && !alreadySolved(game, grid)) run('auto');
-  }
-}).observe(document.documentElement, { childList: true, subtree: true });
+boot();

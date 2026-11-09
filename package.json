@@ -1,7 +1,7 @@
 {
-  "name": "linkedin-games",
+  "name": "linkedin-larp",
   "version": "1.0.0",
-  "description": "",
+  "description": "Linkedin Larp: solves LinkedIn's daily puzzle games in the browser. Not affiliated with LinkedIn.",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -19,12 +19,15 @@
     "site:build": "node scripts/package-site.mjs",
     "site:serve": "node site/dev/serve.mjs",
     "site:shots": "node site/dev/screenshots.mjs",
-    "site:og": "node site/dev/render-og.mjs"
+    "site:og": "node site/dev/render-og.mjs",
+    "icons": "node scripts/icons.ts",
+    "screenshots": "node scripts/build.mjs && node scripts/screenshots.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/chrome": "^0.3.7",
     "@types/node": "^22.20.5",
     "an-array-of-english-words": "^2.0.0",
     "esbuild": "^0.25.10",

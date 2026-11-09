@@ -1,6 +1,10 @@
-# LinkedIn Games Solver (personal challenge)
+# Linkedin Larp
 
-Reads, solves and plays LinkedIn's **Zip**, **Queens**, **Tango** and **Patches** inside the page.
+Reads, solves and plays LinkedIn's daily puzzles (**Zip**, **Queens**, **Tango**, **Patches**, and **Wend** as it lands) inside the page.
+
+> Linkedin Larp is an independent fan project. It is **not affiliated with, endorsed by or connected to LinkedIn**.
+
+![The panel after solving Queens](docs/screenshots/panel-done.png)
 
 ## How it works
 
@@ -23,12 +27,40 @@ Reads, solves and plays LinkedIn's **Zip**, **Queens**, **Tango** and **Patches*
 npm install && npm run build
 ```
 
-Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and pick `dist/extension`.
-Or install `dist/linkedin-games-solver.user.js` in Tampermonkey.
+Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and pick `dist/extension`
+(or upload `dist/linkedin-larp-<version>.zip`). A welcome page opens with a short guide and the settings.
+Reload any LinkedIn tab that was already open. Or install `dist/linkedin-larp.user.js` in Tampermonkey
+(panel only: no toolbar popup, settings stay in that site's localStorage).
 
-A small panel appears bottom-left on `/games/*`. It has a **Solve** button (or **Alt+S**), an **auto**
-checkbox that solves as soon as an unsolved board appears, a Zip input mode selector, and **Export**,
-which downloads every puzzle seen so far as JSON.
+## Usage
+
+- **Panel.** On any `/games/*` page a small card appears bottom-left. Press **Solve** or **Alt+S**. It shows
+  each stage (read, solve, play) and, when done, how long each took. On failure it says which stage failed
+  and offers **Copy debug info** (JSON with the error, page, settings and the puzzle as read).
+- Drag the card by its header; the position is remembered. **–** (or Esc) folds it into a pill; click the pill to open it.
+- **Auto-solve** solves as soon as an unsolved board appears.
+- The gear opens per-game settings (Zip input and drag path, Patches pace) and **Export puzzles**, which
+  downloads every puzzle seen so far as JSON.
+- **Toolbar popup:** status of the current tab, **Solve now**, links to each game, auto-solve and the shortcut.
+  Settings sync between the popup, the welcome/options page and every LinkedIn tab.
+- **Shortcut:** Alt+S (change it at `chrome://extensions/shortcuts`; the page also listens for Alt+S itself).
+
+Everything runs in the browser: no account, no server, no analytics. Permissions: `storage` only, plus
+content scripts on `https://www.linkedin.com/*`.
+
+### How the pieces fit
+
+| File | Runs in | Job |
+|---|---|---|
+| `src/page/main.ts` → `content.js` | page (MAIN world) | read / solve / play, draws the panel |
+| `src/page/panel.ts` | page | the floating card, in a Shadow DOM so LinkedIn CSS can't touch it |
+| `src/page/bridge.ts` → `bridge.js` | ISOLATED content script | relays settings (`chrome.storage.sync`) and status between page and extension via `postMessage` |
+| `src/extension/background.ts` | service worker | opens the welcome page on install, relays the shortcut |
+| `src/extension/popup.*`, `welcome.*` | extension pages | popup and welcome/options page |
+| `src/page/theme.ts` | anywhere | the palette (base colours + one accent per game) and the logo SVG, for the website and video too |
+
+Screenshots for the website: `npm run screenshots` (headless Chromium on local mock pages, writes
+`docs/screenshots/`). Icons: `npm run icons` renders `src/extension/icons/` from the SVG in `theme.ts`.
 
 ## Dev
 
@@ -51,7 +83,7 @@ Benchmarks on seeded random puzzles (`npm run bench`, `bench:queens`, `bench:tan
 | Tango | checked; matches LinkedIn's own solution | 6×6: 0.01 / 0.04 ms | **untested** |
 | Patches | checked | 6–9: 0.03 / 0.6 ms | **untested** |
 
-To check all four in play: open a fresh puzzle, press Alt+S, and read the timing line in the panel.
+To check a game in play: open a fresh puzzle, press Alt+S, and read the timing breakdown in the panel.
 For Patches you can set the drag pace with `localStorage['lgs-patches-pace']` = `sync` | `task` | `frame`.
 
 ## Wend

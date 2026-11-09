@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome to Linkedin Larp</title>
+<link rel="icon" href="icons/icon-32.png">
+<link rel="stylesheet" href="ui.css">
+<style>
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 64px; display: flex; flex-direction: column; gap: 40px; }
+  .hero { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .hero h1 { font-size: 34px; line-height: 1.15; letter-spacing: -.02em; }
+  .hero p { font-size: 17px; color: var(--ll-muted); max-width: 560px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px;
+    border-radius: 999px; background: var(--ll-surface2); border: 1px solid var(--ll-border); color: var(--ll-muted); }
+  .stripe { display: flex; height: 6px; width: 120px; border-radius: 3px; overflow: hidden; }
+  .stripe span { flex: 1; background: var(--acc); }
+  section > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ll-muted); margin-bottom: 14px; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .step { padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+  .step .n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700;
+    background: var(--ll-ink); color: var(--ll-surface); font-size: 14px; margin-bottom: 4px; }
+  .step h3 { font-size: 16px; }
+  .step p { color: var(--ll-muted); font-size: 14px; }
+  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .game { padding: 16px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; border-top: 4px solid var(--acc); }
+  .game:hover { box-shadow: 0 0 0 1px var(--acc); }
+  .game h3 { font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .game h3 .open { font-size: 12px; font-weight: 600; color: var(--acc); }
+  .game p { font-size: 14px; color: var(--ll-muted); }
+  .settings { padding: 8px 20px; }
+  .settings > * { padding: 16px 0; }
+  .settings > * + * { border-top: 1px solid var(--ll-border); }
+  .kbd-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 600; flex-wrap: wrap; }
+  .kbd-row .right { display: flex; align-items: center; gap: 10px; }
+  .saved { font-size: 12px; color: var(--ll-success); opacity: 0; transition: opacity .2s; }
+  .saved.on { opacity: 1; }
+  .notes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .note { padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+  .note h3 { font-size: 15px; }
+  .note p { color: var(--ll-muted); font-size: 14px; }
+  footer { font-size: 13px; color: var(--ll-muted); border-top: 1px solid var(--ll-border); padding-top: 20px; }
+  @media (max-width: 640px) {
+    .steps, .notes { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 28px; }
+    .wrap { padding: 32px 16px 48px; gap: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <span class="mark" data-mark="64"></span>
+    <h1>Welcome to Linkedin Larp</h1>
+    <p>Solves LinkedIn's daily puzzles right on the page: it reads the board, finds the answer in milliseconds, and plays it for you.</p>
+    <div class="stripe" id="stripe" aria-hidden="true"></div>
+    <span class="chip">Not affiliated with, endorsed by or connected to LinkedIn</span>
+  </header>
+
+  <section aria-labelledby="how-h">
+    <h2 id="how-h">How to use it</h2>
+    <div class="steps">
+      <div class="card step"><span class="n">1</span><h3>Open a puzzle</h3><p>Go to any game below on linkedin.com. A small card appears in the corner of the page.</p></div>
+      <div class="card step"><span class="n">2</span><h3>Press Solve</h3><p>Click <b>Solve</b> on the card or press <span id="kbd-inline"><kbd>Alt</kbd> <kbd>S</kbd></span>. Turn on auto-solve to skip even that.</p></div>
+      <div class="card step"><span class="n">3</span><h3>Watch it play</h3><p>The card shows how long reading, solving and playing took. Drag it anywhere, or fold it into a pill.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="games-h">
+    <h2 id="games-h">The games</h2>
+    <div class="games" id="games"></div>
+  </section>
+
+  <section aria-labelledby="set-h">
+    <h2 id="set-h">Settings <span class="saved" id="saved" role="status">Saved</span></h2>
+    <div class="card settings" id="settings">
+      <label class="toggle-row" for="auto">
+        <span>Auto-solve<span class="sub">Solve as soon as an unsolved board appears. Off by default.</span></span>
+        <input type="checkbox" role="switch" class="switch" id="auto">
+      </label>
+      <div class="kbd-row">
+        <span>Keyboard shortcut<span class="sub">Works on any LinkedIn game page.</span></span>
+        <span class="right"><span id="shortcut"></span><button class="ghost" id="change-shortcut" type="button">Change</button></span>
+      </div>
+      <div id="game-settings" style="display:flex;flex-direction:column;gap:18px"></div>
+    </div>
+  </section>
+
+  <section class="notes" aria-label="Good to know">
+    <div class="card note"><h3>Private by design</h3><p>Everything runs in your browser. No account, no servers, no analytics. Puzzles you open are kept in this browser so you can export them from the card's settings.</p></div>
+    <div class="card note"><h3>If something looks off</h3><p>Reload the LinkedIn tab once after installing. If a solve fails, the card shows why and offers <b>Copy debug info</b> for a bug report.</p></div>
+  </section>
+
+  <footer>Linkedin Larp <span id="ver"></span> is an independent fan project. It is not affiliated with, endorsed by or connected to LinkedIn Corporation. LinkedIn and the game names belong to their owners.</footer>
+</div>
+<script src="welcome.js"></script>
+</body>
+</html>
