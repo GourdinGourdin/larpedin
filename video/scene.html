@@ -1,0 +1,740 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Linkedin Larp explainer</title>
+<style>
+  html, body { margin: 0; background: #F7F1E5; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="data.js"></script>
+<script src="timeline.js"></script>
+<script>
+// ======================================================================
+// PALETTE: matches src/page/theme.ts (extension + website).
+// Warm cream paper, ink text, one accent per game.
+// ======================================================================
+const PALETTE = {
+  bg: '#F6EFE2',       // background (cream paper)
+  card: '#FFFDF8',     // card surface
+  cell: '#F3ECDD',     // inset: empty board cell
+  line: '#E6DCCB',     // border
+  ink: '#2B2520',      // text
+  dim: '#6B6158',      // secondary text
+  faint: '#A99F92',    // tertiary (video only: not-yet-spoken caption words)
+  success: '#2E7D4F',
+  shadow: 'rgba(84, 60, 25, 0.16)',
+  games: {
+    zip: '#B84A17',     // burnt orange: the path
+    queens: '#6E46AD',  // royal purple
+    tango: '#1B7264',   // deep teal (moon); the sun is tangoSun
+    patches: '#B03558', // quilt rose
+    wend: '#2B60A8',    // ink blue snake
+  },
+  tangoSun: '#E39A2D',  // video only: warm partner to the Tango moon
+  logoDot: '#F08A55',   // end dot of the brand mark
+  miss: '#C2412F',      // video only: dead-end flash in the search
+};
+
+// Every frame is a pure function of time t (seconds): renderAt(t).
+// Scene timing comes from timeline.js (narration line starts, on the beat).
+const TL = window.TL, D = window.DATA;
+const W = 1080, H = 1920, DURATION = TL.duration;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const FONT = '"SF Pro Display", -apple-system, "Helvetica Neue", Arial, sans-serif';
+const ROUND = '"SF Pro Rounded", "SF Pro Display", -apple-system, "Helvetica Neue", Arial, sans-serif';
+const MONO = '"SF Mono", Menlo, monospace';
+const P = PALETTE, G = PALETTE.games;
+const GAMES = [['Zip', 'zip'], ['Queens', 'queens'], ['Tango', 'tango'], ['Patches', 'patches'], ['Wend', 'wend']];
+
+// ---------- timeline ----------
+const LN = Object.fromEntries(TL.lines.map((l) => [l.id, l]));
+const T = (id) => LN[id].start;
+const END = (id) => LN[id].start + LN[id].dur;
+const WORD = (id, w) => { const x = LN[id].words.find((q) => q.w.replace(/[^\w]/g, '') === w); return LN[id].start + (x ? x.s : 0); };
+const CUT = 0.12; // visuals cut a hair before the voice line
+const S = {
+  hook: [-1, T('read') - CUT],
+  read: [T('read') - CUT, T('solve') - CUT],
+  solve: [T('solve') - CUT, T('play') - CUT],
+  play: [T('play') - CUT, T('all') - CUT],
+  all: [T('all') - CUT, T('outro') - CUT],
+  outro: [T('outro') - CUT, DURATION + 1],
+};
+
+// ---------- math ----------
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = (k) => 1 - Math.pow(1 - k, 3);
+const eInOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const eBack = (k) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+// visibility of a scene running [a, b] with quick fades at both ends
+const vis = (t, a, b, f = 0.25) => Math.min(prog(t, a, a + f), 1 - prog(t, b - f, b));
+
+function hex(h) { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+function mix(a, b, k) { const x = hex(a), y = hex(b); return '#' + x.map((v, i) => Math.round(lerp(v, y[i], k)).toString(16).padStart(2, '0')).join(''); }
+function lum(h) { const [r, g, b] = hex(h).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+const onColor = (h) => (lum(h) > 0.3 ? P.ink : '#FFFFFF');
+
+// ---------- drawing helpers ----------
+function rr(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function text(s, x, y, o = {}) {
+  const { size = 48, weight = 700, color = P.ink, align = 'center', alpha = 1, lh = 1.15, font = FONT, rise = 0 } = o;
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = `${weight} ${size}px ${font}`;
+  ctx.textAlign = align; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = color;
+  s.split('\n').forEach((line, i) => ctx.fillText(line, x, y + i * size * lh + (1 - alpha) * rise));
+  ctx.restore();
+}
+function measure(s, size, weight = 800, font = FONT) { ctx.save(); ctx.font = `${weight} ${size}px ${font}`; const w = ctx.measureText(s).width; ctx.restore(); return w; }
+// soft-shadowed card
+function card(x, y, w, h, r = 32, fill = P.card, lift = 1) {
+  ctx.save();
+  ctx.shadowColor = P.shadow; ctx.shadowBlur = 36 * lift; ctx.shadowOffsetY = 12 * lift;
+  rr(x, y, w, h, r); ctx.fillStyle = fill; ctx.fill();
+  ctx.restore();
+  ctx.save(); rr(x, y, w, h, r); ctx.strokeStyle = P.line; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+}
+function pill(label, x, y, alpha, color, o = {}) {
+  if (alpha <= 0) return;
+  const size = o.size ?? 34;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = `800 ${size}px ${FONT}`;
+  const w = ctx.measureText(label).width + size * 1.8, h = size * 1.85;
+  rr(x - w / 2, y - h * 0.68, w, h, h / 2);
+  ctx.fillStyle = o.solid ? color : mix(color, P.bg, 0.84); ctx.fill();
+  ctx.fillStyle = o.solid ? onColor(color) : mix(color, P.ink, 0.25); ctx.textAlign = 'center';
+  ctx.fillText(label, x, y);
+  ctx.restore();
+}
+function check(cx, cy, r, color, k = 1) {
+  if (k <= 0) return;
+  ctx.save();
+  ctx.translate(cx, cy); ctx.scale(k, k);
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+  ctx.strokeStyle = onColor(color); ctx.lineWidth = r * 0.24; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(-r * 0.42, r * 0.02); ctx.lineTo(-r * 0.1, r * 0.34); ctx.lineTo(r * 0.45, -r * 0.3); ctx.stroke();
+  ctx.restore();
+}
+function background(t) {
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H);
+  const blobs = [
+    [260 + 110 * Math.sin(t * 0.3), 360 + 70 * Math.cos(t * 0.27), 640, P.logoDot],
+    [840 + 90 * Math.cos(t * 0.25), 1520 + 80 * Math.sin(t * 0.31), 720, G.queens],
+  ];
+  for (const [x, y, r, col] of blobs) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, col + '1c'); g.addColorStop(1, col + '00');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ctx.fillStyle = 'rgba(42,36,29,0.05)';
+  for (let y = 40; y < H; y += 60) for (let x = 30; x < W; x += 60) ctx.fillRect(x, y, 3, 3);
+}
+function crown(cx, cy, s, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx - s, cy + s * 0.55);
+  ctx.lineTo(cx - s, cy - s * 0.35);
+  ctx.lineTo(cx - s * 0.5, cy + s * 0.05);
+  ctx.lineTo(cx, cy - s * 0.7);
+  ctx.lineTo(cx + s * 0.5, cy + s * 0.05);
+  ctx.lineTo(cx + s, cy - s * 0.35);
+  ctx.lineTo(cx + s, cy + s * 0.55);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function cursor(x, y, s = 1) {
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(s, s);
+  ctx.shadowColor = P.shadow; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6;
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(0, 64); ctx.lineTo(16, 49); ctx.lineTo(28, 76);
+  ctx.lineTo(39, 71); ctx.lineTo(27, 45); ctx.lineTo(48, 45); ctx.closePath();
+  ctx.fillStyle = P.ink; ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.stroke();
+  ctx.restore();
+}
+// Brand mark (same geometry as markSvg() in src/page/theme.ts): charcoal tile, a cream
+// path snaking through a 3x3 grid, ending on an orange dot. k animates the path drawing in.
+function mark(x, y, size, k = 1) {
+  const u = size / 64;
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(u, u);
+  rr(2, 2, 60, 60, 16); ctx.fillStyle = P.ink; ctx.fill();
+  const pts = [[18, 18], [18, 46], [32, 46], [32, 18], [46, 18], [46, 46]];
+  const segs = clamp(k) * (pts.length - 1);
+  ctx.strokeStyle = P.bg; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(...pts[0]);
+  for (let i = 1; i <= Math.ceil(segs); i++) {
+    const f = Math.min(1, segs - i + 1);
+    ctx.lineTo(lerp(pts[i - 1][0], pts[i][0], f), lerp(pts[i - 1][1], pts[i][1], f));
+  }
+  ctx.stroke();
+  ctx.fillStyle = P.bg; ctx.beginPath(); ctx.arc(18, 18, 6, 0, Math.PI * 2); ctx.fill();
+  const d = eBack(prog(k, 0.85, 1));
+  if (d > 0) { ctx.fillStyle = P.logoDot; ctx.beginPath(); ctx.arc(46, 46, 7 * d, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+}
+// wordmark: brand mark + "Linkedin Larp" with a five-colour underline (one stripe per game)
+function wordmark(cx, y, size, k, maxW = 980) {
+  if (k <= 0) return;
+  const tw = (s) => measure('Linkedin Larp', s, 900) + s * 1.12;
+  let s = size;
+  if (tw(s) > maxW) s = size * maxW / tw(s);
+  const w = measure('Linkedin Larp', s, 900), ms = s * 0.92, total = w + s * 1.12;
+  ctx.save();
+  ctx.globalAlpha *= clamp(k * 1.5);
+  ctx.translate(cx, y); ctx.scale(lerp(0.85, 1, eBack(clamp(k))), lerp(0.85, 1, eBack(clamp(k))));
+  mark(-total / 2, -s * 0.8, ms, prog(k, 0.1, 1));
+  const tx = -total / 2 + s * 1.12;
+  text('Linkedin Larp', tx, 0, { size: s, weight: 900, align: 'left' });
+  const seg = w / 5;
+  GAMES.forEach(([, key], i) => {
+    const a = clamp(k * 5 - i * 0.6);
+    if (a <= 0) return;
+    rr(tx + i * seg + 4, s * 0.2, (seg - 8) * a, s * 0.09, s * 0.045);
+    ctx.fillStyle = G[key]; ctx.fill();
+  });
+  ctx.restore();
+}
+
+// ---------- boards ----------
+function boardFrame(x, y, size) {
+  const pad = size * 0.035;
+  card(x - pad, y - pad, size + 2 * pad, size + 2 * pad, size * 0.06, P.card, size / 700);
+}
+function cellsGrid(x, y, size, N, appear, fillFn, skip) {
+  const cs = size / N, gap = Math.max(3, cs * 0.07);
+  for (let i = 0; i < N * N; i++) {
+    if (skip && skip(i)) continue;
+    const r = Math.floor(i / N), c = i % N;
+    const k = eBack(clamp(appear * 1.6 - (r + c) / (2 * N) * 0.6));
+    if (k <= 0) continue;
+    const s = (cs - gap) * k;
+    const cx = x + c * cs + cs / 2, cy = y + r * cs + cs / 2;
+    rr(cx - s / 2, cy - s / 2, s, s, cs * 0.16);
+    ctx.fillStyle = fillFn ? fillFn(i) : P.cell; ctx.fill();
+  }
+}
+const center = (x, y, cs, N, i) => [x + (i % N) * cs + cs / 2, y + Math.floor(i / N) * cs + cs / 2];
+
+/** Draw a path through cells; f = how many segments (fractional ok). */
+function drawPath(x, y, size, N, cells, f, o = {}) {
+  if (!cells.length || f <= 0 && cells.length < 2) return;
+  const cs = size / N, total = Math.max(1, cells.length - 1);
+  const width = o.width ?? cs * 0.42;
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = width;
+  const segs = Math.min(f, cells.length - 1);
+  const base = o.base ?? G.zip;
+  if (o.glow) {
+    ctx.save();
+    ctx.shadowColor = base; ctx.shadowBlur = o.glow; ctx.strokeStyle = base;
+    ctx.beginPath();
+    for (let i = 0; i <= Math.ceil(segs); i++) {
+      let [px, py] = center(x, y, cs, N, cells[i]);
+      if (i > segs) { const [qx, qy] = center(x, y, cs, N, cells[i - 1]); px = lerp(qx, px, segs - i + 1); py = lerp(qy, py, segs - i + 1); }
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+  // light -> full accent along the path
+  const col = (i) => o.color ?? mix(mix(base, '#FFFFFF', 0.45), base, o.colorBy === 'abs' ? i / 35 : i / total);
+  const dot = (px, py, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(px, py, width / 2, 0, Math.PI * 2); ctx.fill(); };
+  const [sx, sy] = center(x, y, cs, N, cells[0]);
+  dot(sx, sy, col(0));
+  for (let i = 1; i < Math.ceil(segs); i++) {
+    const p = cells[i - 1], c = cells[i], nx = cells[i + 1];
+    if (c - p !== nx - c) { const [cx, cy] = center(x, y, cs, N, c); dot(cx, cy, col(i)); }
+  }
+  ctx.lineCap = 'butt';
+  let ex = sx, ey = sy, ei = 0;
+  for (let i = 0; i < Math.ceil(segs); i++) {
+    const [ax, ay] = center(x, y, cs, N, cells[i]);
+    let [bx, by] = center(x, y, cs, N, cells[i + 1]);
+    const k = Math.min(1, segs - i);
+    bx = lerp(ax, bx, k); by = lerp(ay, by, k);
+    const len = Math.hypot(bx - ax, by - ay) || 1;
+    const ox = i ? ((bx - ax) / len) * 2 : 0, oy = i ? ((by - ay) / len) * 2 : 0;
+    ctx.strokeStyle = col(i);
+    ctx.beginPath(); ctx.moveTo(ax - ox, ay - oy); ctx.lineTo(bx, by); ctx.stroke();
+    ex = bx; ey = by; ei = i;
+  }
+  if (segs > 0) dot(ex, ey, col(ei));
+  ctx.restore();
+}
+function zipWalls(x, y, size, N, walls, alpha) {
+  if (alpha <= 0) return;
+  const cs = size / N;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.strokeStyle = P.ink; ctx.lineWidth = Math.max(4, cs * 0.075); ctx.lineCap = 'round';
+  for (const [c, d] of walls) {
+    const r = Math.floor(c / N), q = c % N;
+    ctx.beginPath();
+    if (d === 'RIGHT') { ctx.moveTo(x + (q + 1) * cs, y + r * cs + 4); ctx.lineTo(x + (q + 1) * cs, y + (r + 1) * cs - 4); }
+    else { ctx.moveTo(x + q * cs + 4, y + (r + 1) * cs); ctx.lineTo(x + (q + 1) * cs - 4, y + (r + 1) * cs); }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function zipNumbers(x, y, size, N, numbers, alpha, pulse = 0) {
+  if (alpha <= 0) return;
+  const cs = size / N;
+  for (const [c, s] of Object.entries(numbers)) {
+    const [cx, cy] = center(x, y, cs, N, +c);
+    const k = eBack(clamp(alpha * 1.4 - s * 0.07));
+    if (k <= 0) continue;
+    const r = cs * 0.27 * k * (1 + pulse * 0.12 * Math.sin(s + pulse * 6));
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = P.ink; ctx.fill();
+    ctx.restore();
+    text(String(s + 1), cx, cy + cs * 0.105, { size: cs * 0.3, weight: 800, color: '#fff', alpha: clamp(k) });
+  }
+}
+function zipBoard(x, y, size, o) {
+  const z = D.zip, N = z.cols;
+  boardFrame(x, y, size);
+  cellsGrid(x, y, size, N, o.appear);
+  if (o.path) drawPath(x, y, size, N, o.path, o.pathF ?? o.path.length, o.pathOpts || {});
+  if (o.fail != null && o.failA > 0) {
+    const cs = size / N, [cx, cy] = center(x, y, cs, N, o.fail);
+    ctx.save(); ctx.globalAlpha = o.failA * ctx.globalAlpha;
+    rr(cx - cs * 0.42, cy - cs * 0.42, cs * 0.84, cs * 0.84, cs * 0.16);
+    ctx.fillStyle = P.miss + '55'; ctx.fill();
+    ctx.strokeStyle = P.miss; ctx.lineWidth = cs * 0.06; ctx.lineCap = 'round';
+    const d = cs * 0.14;
+    ctx.beginPath(); ctx.moveTo(cx - d, cy - d); ctx.lineTo(cx + d, cy + d); ctx.moveTo(cx + d, cy - d); ctx.lineTo(cx - d, cy + d); ctx.stroke();
+    ctx.restore();
+  }
+  zipWalls(x, y, size, N, z.walls, clamp(o.appear * 2 - 0.6));
+  zipNumbers(x, y, size, N, z.numbers, clamp(o.appear * 1.5 - 0.3), o.pulse || 0);
+}
+function zipMini(x, y, s, ap, k) {
+  const z = D.zip, N = z.cols;
+  boardFrame(x, y, s); cellsGrid(x, y, s, N, ap);
+  drawPath(x, y, s, N, z.path, k * (z.path.length - 1));
+  zipWalls(x, y, s, N, z.walls, clamp(ap * 2 - 1));
+  zipNumbers(x, y, s, N, z.numbers, clamp(ap * 1.5 - 0.3));
+}
+
+// Queens regions: soft, warm pastels (original, not the game's art); crowns in the Queens plum.
+const QCOL = ['#F2C6B4', '#F4DFA6', '#CFE3BE', '#BFD9E4', '#D9CBEA', '#F0C9D8', '#D8D2C2'];
+function queensBoard(x, y, size, appear, k) {
+  const q = D.queens, N = q.size, cs = size / N;
+  boardFrame(x, y, size);
+  cellsGrid(x, y, size, N, appear, (i) => QCOL[q.regions[i] % QCOL.length]);
+  for (let r = 0; r < N; r++) {
+    const a = eBack(clamp(k * N - r));
+    if (a <= 0) continue;
+    const [cx, cy] = center(x, y, cs, N, r * N + q.cols[r]);
+    crown(cx, cy + cs * 0.04, cs * 0.3 * a, G.queens);
+  }
+}
+function tangoBoard(x, y, size, appear, k) {
+  const t = D.tango, N = t.size, cs = size / N;
+  boardFrame(x, y, size);
+  const givenFill = mix(P.cell, P.ink, 0.07);
+  cellsGrid(x, y, size, N, appear, (i) => (i in t.given ? givenFill : P.cell));
+  const free = [...Array(N * N).keys()].filter((i) => !(i in t.given));
+  for (let i = 0; i < N * N; i++) {
+    let a = clamp(appear * 2 - 1);
+    if (!(i in t.given)) a = eBack(clamp(k * free.length - free.indexOf(i)));
+    if (a <= 0) continue;
+    const [cx, cy] = center(x, y, cs, N, i);
+    const r = cs * 0.26 * a;
+    if (t.solution[i] === 0) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = P.tangoSun; ctx.fill();
+    } else {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+      ctx.fillStyle = G.tango; ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+      ctx.beginPath(); ctx.arc(cx + r * 0.5, cy - r * 0.35, r * 0.85, 0, Math.PI * 2);
+      ctx.fillStyle = i in t.given ? givenFill : P.cell; ctx.fill();
+      ctx.restore();
+    }
+  }
+  for (const [a, b] of t.edges) {
+    const [ax, ay] = center(x, y, cs, N, a), [bx, by] = center(x, y, cs, N, b);
+    text('×', (ax + bx) / 2, (ay + by) / 2 + cs * 0.1, { size: cs * 0.32, weight: 800, color: P.dim, alpha: clamp(appear * 2 - 1) });
+  }
+}
+// Patches: rectangles in shades of the Patches teal, alternating lighter/darker
+const PCOL = [0, 0.35, 0.15, 0.5, 0.25, 0.42, 0.08].map((k, i) => (i % 2 ? mix(G.patches, '#FFFFFF', k) : mix(G.patches, P.ink, k * 0.5)));
+function patchesBoard(x, y, size, appear, k) {
+  const p = D.patches, N = p.cols, cs = size / N;
+  boardFrame(x, y, size);
+  cellsGrid(x, y, size, N, appear);
+  p.rects.forEach(([t, l, h, w], i) => {
+    const a = eOut(clamp(k * p.rects.length - i));
+    if (a <= 0) return;
+    const [ccx, ccy] = center(x, y, cs, N, p.clues[i].cell);
+    const fx = x + l * cs + 4, fy = y + t * cs + 4, fw = w * cs - 8, fh = h * cs - 8;
+    const rx = lerp(ccx, fx, a), ry = lerp(ccy, fy, a);
+    rr(rx, ry, Math.max(1, fw * a), Math.max(1, fh * a), cs * 0.18);
+    ctx.fillStyle = PCOL[i % PCOL.length]; ctx.fill();
+  });
+  p.clues.forEach((c) => {
+    const [cx, cy] = center(x, y, cs, N, c.cell);
+    const a = clamp(appear * 2 - 1);
+    ctx.save(); ctx.globalAlpha *= a;
+    const s = cs * 0.36;
+    const w = c.shape === 'VERTICAL' ? s * 0.6 : s, h = c.shape === 'HORIZONTAL' ? s * 0.6 : s;
+    rr(cx - w / 2, cy - h / 2, w, h, 5);
+    ctx.fillStyle = P.card; ctx.fill();
+    ctx.restore();
+    if (c.size) text(String(c.size), cx, cy + cs * 0.08, { size: cs * 0.22, weight: 800, alpha: a });
+  });
+}
+// Wend: letters on tiles, holes left empty; each word is traced as a snake and filled.
+// k in [0,1] covers all words in order; o.wordK(i) can override per-word progress.
+function wendBoard(x, y, size, appear, k, o = {}) {
+  const wd = D.wend, N = wd.size, cs = size / N, gap = Math.max(3, cs * 0.07);
+  boardFrame(x, y, size);
+  const nW = wd.words.length;
+  const wk = (i) => (o.wordK ? o.wordK(i) : clamp(k * nW - i));
+  // holes are holes: no tile at all
+  cellsGrid(x, y, size, N, appear, null, (i) => !wd.letters[i]);
+  // each word = one fat snake in the Wend colour (tiny shade shift per word so neighbours separate)
+  const covered = new Set();
+  wd.words.forEach(({ cells }, i) => {
+    const kk = wk(i);
+    if (kk <= 0) return;
+    const f = kk * (cells.length - 1);
+    const col = mix(G.wend, P.ink, [0, 0.14, 0.05, 0.2][i % 4]);
+    drawPath(x, y, size, N, cells, Math.max(0.001, f), { color: col, width: cs * 0.74, glow: kk >= 1 ? 0 : 0 });
+    cells.forEach((c, j) => { if (j <= f + 0.35) covered.add(c); });
+  });
+  for (let i = 0; i < N * N; i++) {
+    const L = wd.letters[i];
+    if (!L) continue;
+    const [cx, cy] = center(x, y, cs, N, i);
+    const on = covered.has(i);
+    text(L, cx, cy + cs * 0.12, { size: cs * 0.36, weight: 800, color: on ? '#fff' : P.ink, alpha: clamp(appear * 2 - 0.8), font: ROUND });
+  }
+}
+const DRAW = { zip: zipMini, queens: queensBoard, tango: tangoBoard, patches: patchesBoard, wend: wendBoard };
+
+// ---------- scenes ----------
+const BX = 170, BY = 470, BS = 740; // the hero Zip board
+
+function sceneHook(t) {
+  const [a, b] = S.hook;
+  const v = vis(t, a, b, 0.2);
+  if (v <= 0) return;
+  ctx.save(); ctx.globalAlpha = v;
+  // frame 0 already reads: big promise + all five boards on screen
+  text('5 puzzles a day.', W / 2, 250, { size: 100, weight: 900 });
+  text('0 effort.', W / 2, 365, { size: 100, weight: 900, color: G.zip });
+  const s = 270, gap = (W - 2 * 60 - 3 * s) / 2;
+  GAMES.forEach(([name, key], i) => {
+    const row = i < 3 ? 0 : 1, x = row ? (W - 2 * s - gap) / 2 + (i - 3) * (s + gap) : 60 + i * (s + gap), y = row ? 860 : 465;
+    const bob = Math.sin(t * 2.4 + i) * 4;
+    const k = eInOut(prog(t, 0.15 + i * 0.32, 1.25 + i * 0.32));
+    DRAW[key](x, y + bob, s, 1, k);
+    text(name, x + s / 2, y + s + 58, { size: 36, weight: 800, color: G[key] });
+    check(x + s - 4, y + bob + 4, 26, G[key], eBack(prog(t, 1.25 + i * 0.32, 1.55 + i * 0.32)));
+  });
+  const wk = prog(t, WORD('hook', 'Let') - 0.1, WORD('hook', 'Let') + 0.45);
+  wordmark(W / 2, 1370, 140, wk);
+  text('plays them for you', W / 2, 1505, { size: 52, weight: 700, color: P.dim, alpha: eOut(prog(t, WORD('hook', 'play') - 0.05, WORD('hook', 'play') + 0.35)), rise: 20 });
+  ctx.restore();
+}
+
+function stepHeader(num, title, t, a, b) {
+  const v = vis(t, a, b);
+  pill(`STEP ${num}`, W / 2, 230, v * eOut(prog(t, a, a + 0.3)), G.zip, { size: 30, solid: true });
+  text(title, W / 2, 352, { size: 76, weight: 900, alpha: v * eOut(prog(t, a + 0.05, a + 0.4)), rise: 24 });
+}
+
+// The Zip board stays on screen through read -> solve -> play
+function sceneBoard(t) {
+  const a0 = S.read[0], a1 = S.play[1];
+  const a = Math.min(prog(t, a0, a0 + 0.35), 1 - prog(t, a1 - 0.25, a1));
+  if (a <= 0) return;
+  const z = D.zip;
+  const o = { appear: eOut(prog(t, a0, a0 + 0.6)) };
+  // SOLVE: replay the search trace, accelerating
+  const s0 = S.solve[0] + 0.25, s1 = S.solve[1] - 0.9;
+  if (t >= S.solve[0] && t < S.play[0]) {
+    const k = prog(t, s0, s1);
+    const steps = Math.floor(Math.pow(k, 2.0) * z.trace.length);
+    const path = [z.start];
+    let lastPop = -1, popAge = 99;
+    for (let i = 0; i < steps; i++) {
+      const [op, c] = z.trace[i];
+      if (op === '+') path.push(c); else { path.pop(); lastPop = c; popAge = steps - i; }
+    }
+    const done = k >= 1;
+    o.path = done ? z.path : path;
+    o.pathF = o.path.length;
+    o.pathOpts = done ? { glow: 12 * prog(t, s1, s1 + 0.4) } : { colorBy: 'abs' };
+    o.fail = lastPop; o.failA = done ? 0 : clamp(1 - popAge / 12);
+    o.pulse = done ? prog(t, s1, s1 + 0.6) : 0;
+  }
+  // PLAY: cursor drags along the path
+  let cur = null;
+  const p0 = S.play[0] + 0.55, p1 = p0 + 2.4;
+  if (t >= S.play[0]) {
+    const k = eInOut(prog(t, p0, p1));
+    const f = k * (z.path.length - 1);
+    o.path = z.path; o.pathF = f;
+    o.pathOpts = { glow: k >= 1 ? 12 : 0 };
+    const i = Math.min(z.path.length - 2, Math.floor(f));
+    const cs = BS / z.cols;
+    const [ax, ay] = center(BX, BY, cs, z.cols, z.path[i]);
+    const [bx, by] = center(BX, BY, cs, z.cols, z.path[i + 1]);
+    cur = [lerp(ax, bx, f - i), lerp(ay, by, f - i)];
+    if (t < p0) { const e = eOut(prog(t, S.play[0], p0)); cur = [lerp(W + 60, cur[0], e), lerp(H - 300, cur[1], e)]; }
+    if (t > p1 + 0.2) { const e = eInOut(prog(t, p1 + 0.2, p1 + 0.9)); cur = [lerp(cur[0], W + 80, e), lerp(cur[1], 1250, e)]; }
+  }
+  ctx.save(); ctx.globalAlpha = a;
+  zipBoard(BX, BY, BS, o);
+  // READ: scanning beam
+  const r0 = S.read[0] + 0.45, r1 = S.read[0] + 2.9;
+  if (t > r0 - 0.1 && t < r1 + 0.2) {
+    const k = eInOut(prog(t, r0, r1));
+    const sy = BY - 20 + k * (BS + 40);
+    const g = ctx.createLinearGradient(0, sy - 90, 0, sy);
+    g.addColorStop(0, G.zip + '00'); g.addColorStop(1, G.zip + '44');
+    ctx.fillStyle = g; ctx.fillRect(BX - 26, sy - 90, BS + 52, 90);
+    ctx.fillStyle = G.zip; ctx.fillRect(BX - 36, sy - 3, BS + 72, 6);
+  }
+  if (cur) cursor(cur[0] - 6, cur[1] - 4, 1.1);
+  ctx.restore();
+}
+
+function infoCard(rows, x, y, w, t, a) {
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha *= a;
+  card(x, y, w, 50 + rows.length * 60, 28);
+  rows.forEach(([k, v, at], i) => {
+    const show = prog(t, at, at + 0.3);
+    if (show <= 0) return;
+    text(k, x + 44, y + 72 + i * 60, { size: 36, weight: 600, align: 'left', color: P.dim, font: MONO, alpha: show });
+    const chars = Math.ceil(v.length * show);
+    text(v.slice(0, chars), x + w - 44, y + 72 + i * 60, { size: 36, weight: 700, align: 'right', color: mix(G.zip, P.ink, 0.25), font: MONO, alpha: show });
+  });
+  ctx.restore();
+}
+
+function sceneRead(t) {
+  const [a, b] = S.read;
+  stepHeader('1', 'Reads the board', t, a, b);
+  const v = vis(t, a + 0.2, b);
+  const r = S.read[0];
+  infoCard([['grid', '6 × 6', r + 0.9], ['numbers', '1 → 6', r + 1.5], ['walls', '10', r + 2.1]], 170, 1270, 740, t, v);
+}
+
+function sceneSolve(t) {
+  const [a, b] = S.solve;
+  stepHeader('2', 'Solves it', t, a, b);
+  const v = vis(t, a + 0.2, b);
+  if (v <= 0) return;
+  const k = prog(t, a + 0.25, b - 0.9);
+  const steps = Math.floor(Math.pow(k, 2.0) * D.zip.trace.length);
+  const back = D.zip.trace.slice(0, steps).filter(([op]) => op === '-').length;
+  ctx.save(); ctx.globalAlpha = v;
+  card(170, 1270, 350, 170, 28); card(560, 1270, 350, 170, 28);
+  text('moves tried', 345, 1330, { size: 32, weight: 600, color: P.dim });
+  text(String(steps), 345, 1405, { size: 62, weight: 800, color: G.zip, font: MONO });
+  text('dead ends', 735, 1330, { size: 32, weight: 600, color: P.dim });
+  text(String(back), 735, 1405, { size: 62, weight: 800, color: P.miss, font: MONO });
+  ctx.restore();
+}
+
+function scenePlay(t) {
+  const [a, b] = S.play;
+  stepHeader('3', 'Plays it for you', t, a, b);
+  const v = vis(t, a + 0.2, b);
+  const ok = eBack(prog(t, a + 3.0, a + 3.4));
+  if (ok > 0.05) {
+    ctx.save(); ctx.globalAlpha = v;
+    const w = Math.max(110, 560 * ok);
+    rr(W / 2 - w / 2, 1300, w, 110, 55);
+    ctx.fillStyle = P.success; ctx.fill();
+    ctx.restore();
+    if (ok > 0.6) { ctx.save(); ctx.globalAlpha = v; check(W / 2 - 200, 1355, 26, '#FFFFFF', clamp(ok)); ctx.restore(); }
+    text('Puzzle solved', W / 2 + 30, 1372, { size: 50, weight: 800, color: '#fff', alpha: v * clamp(ok * 1.5 - 0.5) });
+  }
+}
+
+// all five games: four tiles in a row named by the voice, then Wend gets the hero slot
+function sceneAll(t) {
+  const [a, b] = S.all;
+  const v = vis(t, a, b);
+  if (v <= 0) return;
+  ctx.save(); ctx.globalAlpha = v;
+  text('Same trick,', W / 2, 220, { size: 76, weight: 900, alpha: eOut(prog(t, a, a + 0.3)), rise: 24 });
+  text('every daily game', W / 2, 310, { size: 64, weight: 800, color: P.dim, alpha: eOut(prog(t, a + 0.08, a + 0.4)), rise: 24 });
+  const tw = 228, gap = (W - 2 * 48 - 4 * tw) / 3, bs = 196;
+  GAMES.slice(0, 4).forEach(([name, key], i) => {
+    const x = 48 + i * (tw + gap), y = 380;
+    const ap = eOut(prog(t, a + 0.05 + i * 0.07, a + 0.45 + i * 0.07));
+    if (ap <= 0) return;
+    const named = WORD('all', name);
+    const k = eInOut(prog(t, named - 0.05, named + 0.75));
+    ctx.save(); ctx.globalAlpha *= ap;
+    ctx.translate(0, (1 - ap) * 40);
+    // tile pops a little when the voice names it
+    const pop = 1 + 0.06 * Math.sin(Math.PI * prog(t, named - 0.05, named + 0.35));
+    ctx.translate(x + tw / 2, y + 150); ctx.scale(pop, pop); ctx.translate(-(x + tw / 2), -(y + 150));
+    card(x, y, tw, 300, 30);
+    DRAW[key](x + (tw - bs) / 2, y + 16, bs, ap, k);
+    text(name, x + tw / 2, y + 262, { size: 38, weight: 800, color: G[key] });
+    check(x + tw - 18, y + 18, 24, G[key], eBack(prog(t, named + 0.75, named + 1.0)));
+    ctx.restore();
+  });
+  // Wend: the newest game, big
+  const ws = 560, wx = (W - ws) / 2, wy = 770;
+  const ap = eOut(prog(t, a + 0.3, a + 0.8));
+  if (ap > 0) {
+    const w0 = T('wend') + 0.25;
+    const nW = D.wend.words.length;
+    ctx.save(); ctx.globalAlpha *= ap; ctx.translate(0, (1 - ap) * 60);
+    wendBoard(wx, wy, ws, ap, 0, { wordK: (i) => eInOut(prog(t, w0 + i * 0.85, w0 + i * 0.85 + 0.8)) });
+    text('Wend', wx, wy + ws + 100, { size: 54, weight: 900, color: G.wend, align: 'left' });
+    pill('NEW', wx + measure('Wend', 54, 900) + 70, wy + ws + 96, 1, G.wend, { size: 26, solid: true });
+    const done = prog(t, w0 + nW * 0.85, w0 + nW * 0.85 + 0.3);
+    text(done > 0 ? '4/4 words' : `${D.wend.words.filter((_, i) => prog(t, w0 + i * 0.85, w0 + i * 0.85 + 0.8) >= 1).length}/4 words`,
+      wx + ws - 50, wy + ws + 96, { size: 30, weight: 700, color: P.dim, align: 'right', font: MONO });
+    check(wx + ws - 14, wy + ws + 84, 24, G.wend, eBack(done));
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function sceneOutro(t) {
+  const [a] = S.outro;
+  const v = prog(t, a, a + 0.3);
+  if (v <= 0) return;
+  ctx.save(); ctx.globalAlpha = v;
+  wordmark(W / 2, 470, 150, prog(t, a, a + 0.5));
+  // Reads · Solves · Plays, popping on the voice
+  const words = ['Reads.', 'Solves.', 'Plays.'];
+  const ws = words.map((w) => measure(w, 70, 900)); const sp = 40;
+  let x = W / 2 - (ws.reduce((m, n) => m + n, 0) + sp * 2) / 2;
+  words.forEach((w, i) => {
+    const at = WORD('outro', w.replace('.', ''));
+    const k = eBack(prog(t, at - 0.08, at + 0.25));
+    if (k > 0) {
+      ctx.save(); ctx.translate(x + ws[i] / 2, 650); ctx.scale(k, k);
+      text(w, 0, 0, { size: 70, weight: 900, color: i === 2 ? G.zip : P.ink, alpha: clamp(k) });
+      ctx.restore();
+    }
+    x += ws[i] + sp;
+  });
+  // the five games, solved
+  const s = 150, gap = (W - 2 * 70 - 5 * s) / 4;
+  GAMES.forEach(([name, key], i) => {
+    const k = eOut(prog(t, a + 0.3 + i * 0.08, a + 0.7 + i * 0.08));
+    if (k <= 0) return;
+    const bx = 70 + i * (s + gap), by = 790 + (1 - k) * 40;
+    ctx.save(); ctx.globalAlpha *= k;
+    DRAW[key](bx, by, s, 1, 1);
+    text(name, bx + s / 2, by + s + 54, { size: 28, weight: 800, color: G[key] });
+    ctx.restore();
+  });
+  // CTA
+  const ca = eOut(prog(t, WORD('outro', 'Which') - 0.15, WORD('outro', 'Which') + 0.3));
+  if (ca > 0) {
+    ctx.save(); ctx.globalAlpha *= ca; ctx.translate(0, (1 - ca) * 40);
+    card(110, 1110, 860, 250, 40, P.ink, 1.2);
+    text('Which puzzle should', W / 2, 1205, { size: 56, weight: 800, color: '#fff' });
+    text('it beat next?  ↓', W / 2, 1280, { size: 56, weight: 800, color: P.logoDot });
+    text('Tell me in the comments', W / 2, 1335, { size: 30, weight: 600, color: P.faint });
+    ctx.restore();
+  }
+  text('Chrome extension · Not affiliated with LinkedIn', W / 2, 1470, { size: 30, weight: 600, color: P.dim, alpha: prog(t, a + 0.6, a + 1.0) });
+  ctx.restore();
+  // final fade to paper
+  const out = prog(t, DURATION - 0.4, DURATION);
+  if (out > 0) { ctx.fillStyle = P.bg; ctx.globalAlpha = out; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+}
+
+// ---------- burned-in captions (from the narration timeline) ----------
+const WORD_COLOR = { Zip: G.zip, Queens: G.queens, Tango: G.tango, Patches: G.patches, Wend: G.wend };
+const LINE_COLOR = { hook: G.zip, read: G.zip, solve: G.zip, play: G.zip, all: P.ink, wend: G.wend, outro: G.zip };
+// split each line into short chunks (<= 3 words, break after punctuation)
+const CHUNKS = TL.lines.flatMap((l) => {
+  const out = []; let cur = [];
+  l.words.forEach((w, i) => {
+    cur.push(w);
+    const len = cur.map((q) => q.w).join(' ').length;
+    if (/[.?!:,]$/.test(w.w) || cur.length >= 3 || len > 16) { out.push(cur); cur = []; }
+  });
+  if (cur.length) out.push(cur);
+  return out.map((ws, i) => ({ line: l, words: ws, s: l.start + ws[0].s, e: i < out.length - 1 ? l.start + out[i + 1][0].s : l.start + l.dur + 0.35 }));
+});
+function captions(t) {
+  const c = CHUNKS.find((q) => t >= q.s - 0.04 && t < q.e);
+  if (!c) return;
+  const size = 62, y = 1640, sp = 18;
+  const ws = c.words.map((w) => measure(w.w, size, 900));
+  const total = ws.reduce((a, b) => a + b, 0) + sp * (ws.length - 1);
+  const pad = 34, h = 104;
+  const pop = eBack(prog(t, c.s - 0.04, c.s + 0.12));
+  ctx.save();
+  ctx.translate(W / 2, y); ctx.scale(lerp(0.92, 1, pop), lerp(0.92, 1, pop));
+  card(-total / 2 - pad, -h / 2, total + pad * 2, h, h / 2, P.card, 0.8);
+  let x = -total / 2;
+  c.words.forEach((w, i) => {
+    const s = c.line.start + w.s, e = c.line.start + w.e;
+    const next = c.words[i + 1]; const on = t >= s - 0.03 && (next ? t < c.line.start + next.s - 0.03 : true);
+    const said = t >= s - 0.03;
+    const key = w.w.replace(/[^\w]/g, '');
+    const accent = WORD_COLOR[key] ?? LINE_COLOR[c.line.id];
+    if (on) {
+      rr(x - 10, -h / 2 + 14, ws[i] + 20, h - 28, 18);
+      ctx.fillStyle = accent; ctx.fill();
+    }
+    text(w.w, x + ws[i] / 2, 22, { size, weight: 900, color: on ? onColor(accent) : (said ? P.ink : P.faint) });
+    x += ws[i] + sp;
+  });
+  ctx.restore();
+}
+
+window.DURATION = DURATION;
+window.renderAt = (t) => {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  background(t);
+  sceneHook(t);
+  sceneBoard(t);
+  sceneRead(t);
+  sceneSolve(t);
+  scenePlay(t);
+  sceneAll(t);
+  sceneOutro(t);
+  captions(t);
+};
+
+// Live preview when opened directly (?t=12 freezes a frame).
+const q = new URLSearchParams(location.search);
+if (q.has('t')) renderAt(+q.get('t'));
+else if (!q.has('render')) {
+  const t0 = performance.now();
+  const loop = () => { renderAt(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  loop();
+}
+</script>
+</body>
+</html>
