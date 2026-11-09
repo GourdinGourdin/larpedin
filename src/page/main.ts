@@ -4,7 +4,7 @@
 //   "Export puzzles" downloads it as JSON for the test suite.
 // - In the extension, settings sync with chrome.storage through bridge.ts;
 //   in the userscript they live in localStorage only.
-import { getGrid, getCells } from './dom.ts';
+import { getGrid, getCells, cellPropsCandidates } from './dom.ts';
 import { GAMES, currentGame, type GameId } from './games.ts';
 import { Panel, fmtMs } from './panel.ts';
 import {
@@ -38,6 +38,11 @@ function alreadySolved(game: GameId, grid: HTMLElement): boolean {
   const cells = getCells(grid);
   if (game === 'queens') return grid.querySelectorAll('[data-testid="queen-svg"]').length === Math.round(Math.sqrt(cells.length));
   if (game === 'tango') return cells.every((c) => c.querySelector('[data-testid="cell-one"],[data-testid="cell-zero"]'));
+  if (game === 'wend') {
+    // every letter cell locked = all words found
+    const letters = cells.filter((c) => cellPropsCandidates(c).some((p) => p?.letter));
+    return letters.length > 0 && letters.every((c) => cellPropsCandidates(c).some((p) => p?.isLocked));
+  }
   if (game === 'zip') {
     try {
       const key = Object.keys(cells[0]).find((k) => k.startsWith('__reactFiber'))!;

@@ -321,8 +321,8 @@
               <li>It only runs on <code>www.linkedin.com</code>, and does nothing unless the address is one of the game pages.</li>
               <li>On a game page it reads the puzzle grid and nothing else: no profile, feed, messages or contacts.</li>
               <li>It contains no network code at all: no <code>fetch</code>, <code>XMLHttpRequest</code>, WebSocket or beacon calls, no analytics, no remote scripts.</li>
-              <li>It asks Chrome for no extra permissions and has no background process.</li>
-              <li>Your settings and puzzle archive are saved in the page's own local storage on your computer. <b>Export</b> saves a file to your computer; it doesn't upload it.</li>
+              <li>Its only Chrome permission is <code>storage</code>, to sync your settings. A small background worker opens the welcome page on install and handles the Alt+S shortcut. It has no access to any other site.</li>
+              <li>Your settings are kept in Chrome's extension storage, and the puzzle archive in the page's own local storage, both on your computer. <b>Export</b> saves a file to your computer; it doesn't upload it.</li>
             </ul>
             <p>Don't take our word for it: <a href="https://github.com/REPLACE_ME/linkedin-larp">the source is public</a>, and it's small enough to read in one sitting.</p>
           </details>
