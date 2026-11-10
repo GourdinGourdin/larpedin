@@ -9,7 +9,6 @@ injectTheme();
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 $('ver').textContent = `v${chrome.runtime.getManifest().version}`;
 
-$('stripe').innerHTML = gameList().map(([id]) => `<span class="g-${id}"></span>`).join('');
 $('games').innerHTML = gameList().map(([id, t]) =>
   `<a class="card game g-${id}" href="${t.url}" target="_blank" rel="noopener">` +
   `<h3>${t.name}<span class="open">Open ↗</span></h3><p>${t.blurb}</p></a>`).join('');

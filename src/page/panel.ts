@@ -62,7 +62,6 @@ button{cursor:pointer}
 
 .card{width:280px;background:var(--ll-surface);border:1px solid var(--ll-border);border-radius:var(--radius);
   box-shadow:var(--ll-shadow);overflow:hidden;position:relative}
-.card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--acc)}
 
 .head{display:flex;align-items:center;gap:10px;padding:12px 8px 10px 12px;cursor:grab;user-select:none;touch-action:none}
 .head:active{cursor:grabbing}

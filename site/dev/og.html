@@ -6,54 +6,27 @@
 <link rel="stylesheet" href="../assets/styles.css">
 <style>
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
-  body { background: var(--bg); position: relative; }
-  .bar { position: absolute; inset: 0 0 auto; height: 14px; background: var(--rainbow); }
-  .og { display: grid; grid-template-columns: 1fr 400px; gap: 64px; align-items: center; height: 100%; padding: 40px 80px 30px; box-sizing: border-box; }
-  .brand { font-size: 34px; gap: 16px; margin-bottom: 34px; }
-  .brand img { width: 56px; height: 56px; }
-  h1 { font-size: 66px; margin: 0 0 30px; line-height: 1.04; }
-  .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }
-  .chip { font: 800 22px/1 var(--font-display); padding: 10px 16px; border-radius: 999px; background: var(--s); color: var(--k); border: 2px solid var(--c); }
-  .flow { font: 700 21px/1 var(--font-mono); color: var(--ink-2); white-space: nowrap; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); padding: 22px; transform: rotate(2deg); }
-  .card svg { width: 100%; height: auto; }
-  .t { display: flex; justify-content: space-between; font: 600 18px/1 var(--font-mono); color: var(--ink-2); margin-top: 14px; }
-  .t b { color: var(--ink); }
+  body { background: var(--bg); }
+  .og { display: grid; grid-template-columns: 1fr 420px; gap: 72px; align-items: center; height: 100%; padding: 56px 84px; box-sizing: border-box; }
+  .brand { font-size: 34px; gap: 16px; margin-bottom: 36px; }
+  .brand img { width: 60px; height: 60px; }
+  h1 { font-size: 68px; margin: 0 0 32px; }
+  .games { display: flex; gap: 22px; font: 700 23px/1 var(--font-display); color: var(--ink-2); }
+  .games span { display: flex; align-items: center; gap: 9px; }
+  .games .dot { width: 12px; height: 12px; }
+  .board-card { max-width: none; margin: 0; padding: 20px; }
 </style>
 </head>
 <body>
-<div class="bar"></div>
 <div class="og">
   <div>
-    <div class="brand"><img src="../assets/icon.svg" alt=""> LarpedIn</div>
-    <h1>LinkedIn's daily puzzles, <em>solved in milliseconds.</em></h1>
-    <div class="chips">
-      <span class="chip" style="--c:var(--zip);--s:var(--zip-soft);--k:var(--zip-ink)">Zip</span>
-      <span class="chip" style="--c:var(--queens);--s:var(--queens-soft);--k:var(--queens-ink)">Queens</span>
-      <span class="chip" style="--c:var(--tango);--s:var(--tango-soft);--k:var(--tango-ink)">Tango</span>
-      <span class="chip" style="--c:var(--patches);--s:var(--patches-soft);--k:var(--patches-ink)">Patches</span>
-      <span class="chip" style="--c:var(--wend);--s:var(--wend-soft);--k:var(--wend-ink)">Wend</span>
+    <div class="brand"><img src="../assets/icon.svg" alt="">LarpedIn</div>
+    <h1>LinkedIn's daily puzzles, solved in milliseconds.</h1>
+    <div class="games">
+      <span><i class="dot dot-zip"></i>Zip</span><span><i class="dot dot-queens"></i>Queens</span><span><i class="dot dot-tango"></i>Tango</span><span><i class="dot dot-patches"></i>Patches</span><span><i class="dot dot-wend"></i>Wend</span>
     </div>
-    <div class="flow">Read → Solve → Play · free Chrome extension</div>
   </div>
-  <div class="card">
-    <svg viewBox="0 0 300 300" id="b"></svg>
-    <div class="t"><span><b>read</b> 0.1ms</span><span><b>solve</b> 0.2ms</span><span><b>play</b> ✓</span></div>
-  </div>
+  <figure class="board-card"><img src="../assets/games/zip.svg" alt=""></figure>
 </div>
-<script>
-  const N = 5, S = 60, svg = document.getElementById('b'), NS = 'http://www.w3.org/2000/svg';
-  const path = [0,1,2,3,4,9,14,19,24,23,18,17,22,21,20,15,16,11,10,5,6,7,8,13,12];
-  const nums = { 0: 1, 14: 2, 20: 3, 8: 4, 12: 5 };
-  const c = (i) => [(i % N) * S + 30, ((i / N) | 0) * S + 30];
-  const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); svg.append(e); return e; };
-  for (let i = 0; i < 25; i++) mk('rect', { x: (i % N) * S + 4, y: ((i / N) | 0) * S + 4, width: 52, height: 52, rx: 11, fill: 'var(--zip-soft)' });
-  mk('polyline', { points: path.map((i) => c(i).join(',')).join(' '), fill: 'none', stroke: 'var(--zip)', 'stroke-width': 14, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
-  for (const i in nums) {
-    const [x, y] = c(+i);
-    mk('circle', { cx: x, cy: y, r: 15, fill: 'var(--ink)' });
-    const t = mk('text', { x, y, class: 'num-txt' }); t.textContent = nums[i];
-  }
-</script>
 </body>
 </html>

@@ -20,6 +20,7 @@
     "site:serve": "node site/dev/serve.mjs",
     "site:shots": "node site/dev/screenshots.mjs",
     "site:og": "node site/dev/render-og.mjs",
+    "site:art": "node scripts/site-art.ts",
     "icons": "node scripts/icons.ts",
     "screenshots": "node scripts/build.mjs && node scripts/screenshots.ts"
   },

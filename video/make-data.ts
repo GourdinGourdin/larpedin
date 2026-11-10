@@ -46,16 +46,16 @@ const pz = {
 };
 const rects = solvePatches(pz)!;
 
-// Wend (new game, not in the fixture yet): 5x5 letters row-major, '' = hole,
-// and the answer words as snakes of orthogonally adjacent cells.
+// Wend: a full 5x5 letter grid (every tile is used, no holes), row-major, and
+// the answer words as snakes of orthogonally adjacent cells.
 const wend = {
   size: 5,
-  letters: ['A', '', 'R', 'E', 'C', 'C', 'P', 'T', '', 'E', 'C', 'E', 'T', 'P', 'I', 'D', '', 'T', 'P', 'A', 'N', 'E', 'R', '', 'Z'],
+  letters: [...'QUESO' + 'SNEVL' + 'PEDEP' + 'ULEHA' + 'ZZSCT'],
   words: [
-    { word: 'ZAP', cells: [24, 19, 18] },
-    { word: 'TREND', cells: [17, 22, 21, 20, 15] },
-    { word: 'ACCEPT', cells: [0, 5, 10, 11, 6, 7] },
-    { word: 'RECEIPT', cells: [2, 3, 4, 9, 14, 13, 12] },
+    { word: 'QUEENS', cells: [0, 1, 2, 7, 6, 5] },
+    { word: 'SOLVED', cells: [3, 4, 9, 8, 13, 12] },
+    { word: 'PUZZLE', cells: [10, 15, 20, 21, 16, 11] },
+    { word: 'PATCHES', cells: [14, 19, 24, 23, 18, 17, 22] },
   ],
 };
 const covered = new Set<number>();

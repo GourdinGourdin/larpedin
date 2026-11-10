@@ -30,9 +30,9 @@ const PALETTE = {
   games: {
     zip: '#B84A17',     // burnt orange: the path
     queens: '#6E46AD',  // royal purple
-    tango: '#1B7264',   // deep teal (moon); the sun is tangoSun
+    tango: '#2B60A8',   // night blue (moon); the sun is tangoSun
     patches: '#B03558', // quilt rose
-    wend: '#2B60A8',    // ink blue snake
+    wend: '#1B7264',    // deep teal snake
   },
   tangoSun: '#E39A2D',  // video only: warm partner to the Tango moon
   logoDot: '#F08A55',   // end dot of the brand mark
@@ -170,28 +170,23 @@ function cursor(x, y, s = 1) {
   ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.stroke();
   ctx.restore();
 }
-// Brand mark (same geometry as markSvg() in src/page/theme.ts): charcoal tile, a cream
-// path snaking through a 3x3 grid, ending on an orange dot. k animates the path drawing in.
+// Brand mark (same geometry as markSvg() in src/page/theme.ts): charcoal tile, a bold
+// cream L that turns the corner like a Zip path, landing on an orange dot.
+// k animates the stroke drawing in, then the dot pops.
+const MARK_PATH = new Path2D('M19 17 V35 Q19 45 29 45 H30'), MARK_LEN = 18 + Math.PI * 5 + 1 + 1;
 function mark(x, y, size, k = 1) {
   const u = size / 64;
   ctx.save();
   ctx.translate(x, y); ctx.scale(u, u);
-  rr(2, 2, 60, 60, 16); ctx.fillStyle = P.ink; ctx.fill();
-  const pts = [[18, 18], [18, 46], [32, 46], [32, 18], [46, 18], [46, 46]];
-  const segs = clamp(k) * (pts.length - 1);
-  ctx.strokeStyle = P.bg; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.beginPath(); ctx.moveTo(...pts[0]);
-  for (let i = 1; i <= Math.ceil(segs); i++) {
-    const f = Math.min(1, segs - i + 1);
-    ctx.lineTo(lerp(pts[i - 1][0], pts[i][0], f), lerp(pts[i - 1][1], pts[i][1], f));
-  }
-  ctx.stroke();
-  ctx.fillStyle = P.bg; ctx.beginPath(); ctx.arc(18, 18, 6, 0, Math.PI * 2); ctx.fill();
-  const d = eBack(prog(k, 0.85, 1));
-  if (d > 0) { ctx.fillStyle = P.logoDot; ctx.beginPath(); ctx.arc(46, 46, 7 * d, 0, Math.PI * 2); ctx.fill(); }
+  rr(2, 2, 60, 60, 18); ctx.fillStyle = P.ink; ctx.fill();
+  ctx.strokeStyle = P.bg; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const d = clamp(k / 0.85);
+  if (d > 0) { ctx.setLineDash([MARK_LEN * d, 200]); ctx.stroke(MARK_PATH); ctx.setLineDash([]); }
+  const p = eBack(prog(k, 0.8, 1));
+  if (p > 0) { ctx.fillStyle = P.logoDot; ctx.beginPath(); ctx.arc(44, 45, 6.5 * p, 0, Math.PI * 2); ctx.fill(); }
   ctx.restore();
 }
-// wordmark: brand mark + "LarpedIn" with a five-colour underline (one stripe per game)
+// wordmark: brand mark + "LarpedIn"
 function wordmark(cx, y, size, k, maxW = 980) {
   if (k <= 0) return;
   const tw = (s) => measure('LarpedIn', s, 900) + s * 1.12;
@@ -202,15 +197,7 @@ function wordmark(cx, y, size, k, maxW = 980) {
   ctx.globalAlpha *= clamp(k * 1.5);
   ctx.translate(cx, y); ctx.scale(lerp(0.85, 1, eBack(clamp(k))), lerp(0.85, 1, eBack(clamp(k))));
   mark(-total / 2, -s * 0.8, ms, prog(k, 0.1, 1));
-  const tx = -total / 2 + s * 1.12;
-  text('LarpedIn', tx, 0, { size: s, weight: 900, align: 'left' });
-  const seg = w / 5;
-  GAMES.forEach(([, key], i) => {
-    const a = clamp(k * 5 - i * 0.6);
-    if (a <= 0) return;
-    rr(tx + i * seg + 4, s * 0.2, (seg - 8) * a, s * 0.09, s * 0.045);
-    ctx.fillStyle = G[key]; ctx.fill();
-  });
+  text('LarpedIn', -total / 2 + s * 1.12, 0, { size: s, weight: 900, align: 'left' });
   ctx.restore();
 }
 
@@ -372,9 +359,15 @@ function tangoBoard(x, y, size, appear, k) {
       ctx.restore();
     }
   }
-  for (const [a, b] of t.edges) {
+  for (const [a, b, kind] of t.edges) {
     const [ax, ay] = center(x, y, cs, N, a), [bx, by] = center(x, y, cs, N, b);
-    text('×', (ax + bx) / 2, (ay + by) / 2 + cs * 0.1, { size: cs * 0.32, weight: 800, color: P.dim, alpha: clamp(appear * 2 - 1) });
+    const ea = clamp(appear * 2 - 1), mx = (ax + bx) / 2, my = (ay + by) / 2;
+    if (ea <= 0) continue;
+    ctx.save(); ctx.globalAlpha *= ea;
+    ctx.beginPath(); ctx.arc(mx, my, cs * 0.21, 0, Math.PI * 2); ctx.fillStyle = P.card; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = P.cell; ctx.stroke();
+    ctx.restore();
+    text(kind === '=' ? '=' : '×', mx, my + cs * 0.1, { size: cs * 0.32, weight: 800, color: P.ink, alpha: ea });
   }
 }
 // Patches: rectangles in shades of the Patches teal, alternating lighter/darker
@@ -404,7 +397,7 @@ function patchesBoard(x, y, size, appear, k) {
     if (c.size) text(String(c.size), cx, cy + cs * 0.08, { size: cs * 0.22, weight: 800, alpha: a });
   });
 }
-// Wend: letters on tiles, holes left empty; each word is traced as a snake and filled.
+// Wend: letters on every tile (the grid has no holes); each word is traced as a snake and filled.
 // k in [0,1] covers all words in order; o.wordK(i) can override per-word progress.
 function wendBoard(x, y, size, appear, k, o = {}) {
   const wd = D.wend, N = wd.size, cs = size / N, gap = Math.max(3, cs * 0.07);
@@ -628,7 +621,7 @@ function sceneOutro(t) {
   if (v <= 0) return;
   ctx.save(); ctx.globalAlpha = v;
   wordmark(W / 2, 470, 150, prog(t, a, a + 0.5));
-  // Reads · Solves · Plays, popping on the voice
+  // Reads. Solves. Plays. popping on the voice
   const words = ['Reads.', 'Solves.', 'Plays.'];
   const ws = words.map((w) => measure(w, 70, 900)); const sp = 40;
   let x = W / 2 - (ws.reduce((m, n) => m + n, 0) + sp * 2) / 2;
@@ -663,7 +656,7 @@ function sceneOutro(t) {
     text('Tell me in the comments', W / 2, 1335, { size: 30, weight: 600, color: P.faint });
     ctx.restore();
   }
-  text('Browser extension · Not affiliated with LinkedIn', W / 2, 1470, { size: 30, weight: 600, color: P.dim, alpha: prog(t, a + 0.6, a + 1.0) });
+  text('Free browser extension. Not affiliated with LinkedIn.', W / 2, 1470, { size: 30, weight: 600, color: P.dim, alpha: prog(t, a + 0.6, a + 1.0) });
   ctx.restore();
   // final fade to paper
   const out = prog(t, DURATION - 0.4, DURATION);

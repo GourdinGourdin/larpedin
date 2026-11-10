@@ -50,7 +50,7 @@ try {
     check(overflow <= 0, `${s.name}: no horizontal scroll (overflow ${overflow}px)`);
     if (s.name === 'desktop-1440') {
       const v = await page.textContent('[data-version]');
-      check(/^v\d/.test(v), `version label "${v}"`);
+      check(/^Version \d/.test(v), `version label "${v}"`);
       const primary = await page.textContent('.hero [data-install-primary]');
       check(/Add to Chrome/.test(primary), `hero button "${primary.trim()}"`);
       const detected = await page.getAttribute('.store.is-detected', 'data-store');

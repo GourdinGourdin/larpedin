@@ -63,15 +63,15 @@ export const GAME_THEME = {
   },
   tango: {
     name: 'Tango', blurb: 'Balance suns and moons; follow the = and × signs.',
-    url: 'https://www.linkedin.com/games/tango/', accent: '#1B7264', accentDark: '#5CC2AE',
+    url: 'https://www.linkedin.com/games/tango/', accent: '#2B60A8', accentDark: '#7FA8EC',
   },
   patches: {
     name: 'Patches', blurb: 'Cut the grid into rectangles that match each clue.',
     url: 'https://www.linkedin.com/games/patches/', accent: '#B03558', accentDark: '#F07C9C',
   },
   wend: {
-    name: 'Wend', blurb: 'The newest daily puzzle.',
-    url: 'https://www.linkedin.com/games/wend/', accent: '#2B60A8', accentDark: '#7FA8EC',
+    name: 'Wend', blurb: 'Snaking words that use every tile once.',
+    url: 'https://www.linkedin.com/games/wend/', accent: '#1B7264', accentDark: '#5CC2AE',
   },
 } satisfies Record<GameId | 'wend', GameTheme>;
 
@@ -95,12 +95,15 @@ export function baseCssVars(selector = ':host'): string {
 
 /** The brand mark as an SVG string (also the source of the toolbar icons). */
 export function markSvg(size = 24, title = '', simple = size <= 20): string {
-  // A rounded charcoal tile and one path that snakes, Zip-style, on a 3x3 grid
-  // through all nine cells to a bright end dot: "solved". Tiny sizes get
-  // slightly bolder ends so it stays legible.
+  // A charcoal tile with one bold cream stroke: the L of LarpedIn, drawn like a
+  // Zip path that turns the corner and lands on an orange "solved" dot.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 64 64"${title ? ` role="img" aria-label="${title}"` : ' aria-hidden="true"'}>` +
-    `<rect x="2" y="2" width="60" height="60" rx="16" fill="#2B2520"/>` +
-    `<path d="M18 18 V46 H32 V18 H46 V46" fill="none" stroke="#F6EFE2" stroke-width="${simple ? 8 : 7}" stroke-linecap="round" stroke-linejoin="round"/>` +
-    `<circle cx="18" cy="18" r="${simple ? 7 : 6}" fill="#F6EFE2"/><circle cx="46" cy="46" r="${simple ? 8.5 : 7}" fill="#F08A55"/>` +
+    `<rect x="2" y="2" width="60" height="60" rx="18" fill="#2B2520"/>` +
+    `<path d="${MARK_PATH}" fill="none" stroke="#F6EFE2" stroke-width="${simple ? 11 : 10}" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<circle cx="${MARK_DOT[0]}" cy="${MARK_DOT[1]}" r="${simple ? 7 : 6.5}" fill="#F08A55"/>` +
     `</svg>`;
 }
+
+/** Geometry of the mark on its 64x64 grid, shared with the video. */
+export const MARK_PATH = 'M19 17 V35 Q19 45 29 45 H30';
+export const MARK_DOT = [44, 45] as const;

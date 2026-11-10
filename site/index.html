@@ -69,26 +69,34 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="wrap hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow"><span class="stripe" aria-hidden="true"></span>Free browser extension</p>
-          <h1 id="hero-title">LinkedIn's daily puzzles, <em>solved in milliseconds.</em></h1>
-          <p class="lede">LarpedIn reads the puzzle straight from the page, solves it with an exact search, and plays the moves for you. Zip, Queens, Tango, Patches and Wend. No AI, no guessing, no data sent anywhere.</p>
+          <p class="eyebrow">Free browser extension</p>
+          <h1 id="hero-title">LinkedIn's daily puzzles, solved in milliseconds.</h1>
+          <p class="lede">LarpedIn reads the board straight from the page, finds the answer with an exact solver and plays it for you. Zip, Queens, Tango, Patches and Wend.</p>
           <div class="cta-row">
-            <a class="btn btn-big" href="#install" data-install-primary>
-              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span data-install-label>Install for free</span>
-            </a>
-            <a class="btn btn-ghost" href="#install">All browsers</a>
+            <a class="btn btn-big" href="#install" data-install-primary><span data-install-label>Install for free</span></a>
+            <a class="btn btn-ghost" href="#install">Other browsers</a>
           </div>
-          <p class="meta" aria-live="polite"><span data-version>Free, open source</span> · <a href="https://github.com/REPLACE_ME/larpedin">Source on GitHub</a></p>
+          <ul class="facts">
+            <li>No AI, no guessing</li>
+            <li>Nothing leaves your browser</li>
+            <li><a href="https://github.com/REPLACE_ME/larpedin">Open source</a></li>
+          </ul>
           <p class="browser-hint" data-browser-hint hidden></p>
         </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="hero-card">
-            <div class="mini-board" data-hero-board></div>
-            <div class="hero-timing">
-              <span><b>read</b> 0.1 ms</span>
-              <span><b>solve</b> 0.2 ms</span>
-              <span><b>play</b> done</span>
+
+        <div class="hero-art">
+          <figure class="board-card">
+            <img src="assets/games/zip.svg" width="400" height="400" alt="A solved Zip puzzle: one orange path runs through every cell and passes the numbers 1 to 6 in order.">
+          </figure>
+          <div class="lp-panel" aria-hidden="true">
+            <div class="lp-head">
+              <img src="assets/icon.svg" width="28" height="28" alt="">
+              <div><b>LarpedIn</b><span><i class="dot dot-zip"></i>Zip</span></div>
+            </div>
+            <div class="lp-status">
+              <div class="lp-steps"><span class="on">Read</span><span class="on">Solve</span><span class="on">Play</span></div>
+              <p class="lp-msg"><svg viewBox="0 0 20 20" width="14" height="14"><path d="m5 10.5 3.2 3L15 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Solved in 212 ms</p>
+              <dl class="lp-times"><div><dt>Read</dt><dd>1 ms</dd></div><div><dt>Solve</dt><dd>0.2 ms</dd></div><div><dt>Play</dt><dd>211 ms</dd></div></dl>
             </div>
           </div>
         </div>
@@ -96,11 +104,10 @@
     </section>
 
     <!-- ============ HOW IT WORKS ============ -->
-    <section class="section" id="how" aria-labelledby="how-title">
+    <section class="section section-alt" id="how" aria-labelledby="how-title">
       <div class="wrap">
-        <p class="kicker">How it works</p>
-        <h2 id="how-title">Read → Solve → Play</h2>
-        <p class="section-lede">Three steps, every time. The board below is a tiny Zip-style puzzle, and the search you see is a real backtracking search (a simpler cousin of the extension's solvers) running in your browser, slowed down so you can watch it.</p>
+        <h2 id="how-title">Read, solve, play</h2>
+        <p class="section-lede">The same three steps on every board. Below is a tiny Zip-style puzzle and a real backtracking search running in your browser, slowed down so you can follow it.</p>
 
         <div class="demo" data-demo>
           <div class="demo-board">
@@ -121,7 +128,7 @@
                 <span class="step-num">1</span>
                 <span class="step-body">
                   <span class="step-title">Read</span>
-                  <span class="step-text">Pulls the puzzle data straight out of the page: grid size, numbers, regions, clues, walls. No screenshots, no OCR, so nothing to misread.</span>
+                  <span class="step-text">Takes the puzzle data straight from the page: grid size, numbers, regions, clues and walls. No screenshots, so nothing to misread.</span>
                 </span>
               </button>
             </li>
@@ -130,7 +137,7 @@
                 <span class="step-num">2</span>
                 <span class="step-body">
                   <span class="step-title">Solve</span>
-                  <span class="step-text">Exact search with constraint propagation. No AI or machine learning and no guessing: the answer is proven correct. Usually well under a millisecond; the hardest boards still take only milliseconds.</span>
+                  <span class="step-text">An exact search that uses the rules to cut dead ends early. The answer is proven correct, usually in well under a millisecond.</span>
                 </span>
               </button>
             </li>
@@ -139,200 +146,181 @@
                 <span class="step-num">3</span>
                 <span class="step-body">
                   <span class="step-title">Play</span>
-                  <span class="step-text">Enters the answer with simulated mouse input inside the page: drags for paths and rectangles, taps for cells. You watch the board fill in.</span>
+                  <span class="step-text">Enters the answer on the real board: one drag for a path, taps for cells. You watch it fill in.</span>
                 </span>
               </button>
             </li>
           </ol>
         </div>
-        <p class="demo-note" data-demo-bench>On your machine, this demo puzzle solves in <b data-demo-bench-ms>…</b> (averaged over 200 runs).</p>
+        <p class="demo-note" data-demo-bench>On your machine, this demo puzzle solves in <b data-demo-bench-ms>…</b> on average over 200 runs.</p>
       </div>
     </section>
 
     <!-- ============ GAMES ============ -->
-    <section class="section section-alt" id="games" aria-labelledby="games-title">
+    <section class="section" id="games" aria-labelledby="games-title">
       <div class="wrap">
-        <p class="kicker">Supported games</p>
-        <h2 id="games-title">All five daily puzzles</h2>
-        <p class="section-lede">Each game gets its own solver, written for that game's rules.</p>
+        <h2 id="games-title">Five puzzles, five solvers</h2>
+        <p class="section-lede">Each game gets a solver written for its own rules. These are real boards, solved by the extension's code.</p>
         <ul class="games">
-          <li class="game" style="--g: var(--zip); --g-ink: var(--zip-ink); --g-soft: var(--zip-soft)">
-            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
-              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
-              <path d="M12 12H36V24H12V36H36" fill="none" stroke="var(--g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="12" cy="12" r="5" fill="var(--ink)"/><circle cx="36" cy="36" r="5" fill="var(--ink)"/>
-            </svg>
-            <h3>Zip</h3>
-            <p>One path through every cell, hitting the numbered dots in order.</p>
+          <li class="game">
+            <img src="assets/games/zip.svg" width="400" height="400" alt="Solved Zip board">
+            <h3><i class="dot dot-zip"></i>Zip</h3>
+            <p>Draw one path through every cell, passing the numbers in order.</p>
+            <p class="how">Path search that spots forced moves and cut-off cells.</p>
           </li>
-          <li class="game" style="--g: var(--queens); --g-ink: var(--queens-ink); --g-soft: var(--queens-soft)">
-            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
-              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
-              <path d="M6 6h20v14H6zM26 6h16v22H26zM6 20h20v22H6zM26 28h16v14H26z" fill="none" stroke="var(--g)" stroke-width="2.5" stroke-linejoin="round"/>
-              <circle cx="16" cy="13" r="4" fill="var(--ink)"/><circle cx="34" cy="20" r="4" fill="var(--ink)"/><circle cx="13" cy="34" r="4" fill="var(--ink)"/>
-            </svg>
-            <h3>Queens</h3>
-            <p>One queen per row, column and colour region, and no two may touch.</p>
+          <li class="game">
+            <img src="assets/games/queens.svg" width="400" height="400" alt="Solved Queens board">
+            <h3><i class="dot dot-queens"></i>Queens</h3>
+            <p>One queen in every row, column and colour region, and no two touching.</p>
+            <p class="how">Bit-mask search that counts what each region has left.</p>
           </li>
-          <li class="game" style="--g: var(--tango); --g-ink: var(--tango-ink); --g-soft: var(--tango-soft)">
-            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
-              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
-              <circle cx="15" cy="15" r="6" fill="var(--g)"/><circle cx="33" cy="15" r="6" fill="none" stroke="var(--ink)" stroke-width="2.5"/>
-              <circle cx="15" cy="33" r="6" fill="none" stroke="var(--ink)" stroke-width="2.5"/><circle cx="33" cy="33" r="6" fill="var(--g)"/>
-              <path d="M22 13.5h4M22 16.5h4" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-            <h3>Tango</h3>
-            <p>Fill the grid with two symbols: balanced rows and columns, no three in a row, and every = / × clue respected.</p>
+          <li class="game">
+            <img src="assets/games/tango.svg" width="400" height="400" alt="Solved Tango board">
+            <h3><i class="dot dot-tango"></i>Tango</h3>
+            <p>Fill the grid with suns and moons: balanced lines, no three in a row, every = and × respected.</p>
+            <p class="how">Rule propagation that tests each cell both ways.</p>
           </li>
-          <li class="game" style="--g: var(--patches); --g-ink: var(--patches-ink); --g-soft: var(--patches-soft)">
-            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
-              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
-              <rect x="7" y="7" width="20" height="13" rx="3" fill="var(--g)"/>
-              <rect x="30" y="7" width="11" height="34" rx="3" fill="none" stroke="var(--ink)" stroke-width="2.5"/>
-              <rect x="7" y="23" width="20" height="18" rx="3" fill="none" stroke="var(--g-ink)" stroke-width="2.5"/>
-            </svg>
-            <h3>Patches</h3>
-            <p>Split the grid into rectangles, each matching the shape and size of its single clue.</p>
+          <li class="game">
+            <img src="assets/games/patches.svg" width="400" height="400" alt="Solved Patches board">
+            <h3><i class="dot dot-patches"></i>Patches</h3>
+            <p>Cut the grid into rectangles, each matching the shape and size of its one clue.</p>
+            <p class="how">Exact cover search over every rectangle that fits.</p>
           </li>
-          <li class="game" style="--g: var(--wend); --g-ink: var(--wend-ink); --g-soft: var(--wend-soft)">
-            <svg class="game-icon" viewBox="0 0 48 48" aria-hidden="true">
-              <rect x="2" y="2" width="44" height="44" rx="8" fill="var(--g-soft)"/>
-              <path d="M10 38C10 24 22 30 22 18S36 8 38 14 30 30 38 38" fill="none" stroke="var(--g)" stroke-width="5" stroke-linecap="round"/>
-              <circle cx="10" cy="38" r="4" fill="var(--ink)"/>
-            </svg>
-            <h3>Wend</h3>
-            <p>Hidden words snake through the grid. A built-in English word list and a path search find the words that use every tile once.</p>
+          <li class="game">
+            <img src="assets/games/wend.svg" width="400" height="400" alt="Solved Wend board with the words QUEENS, SOLVED, PUZZLE and PATCHES">
+            <h3><i class="dot dot-wend"></i>Wend</h3>
+            <p>Find the hidden words that snake through the grid and use every tile once.</p>
+            <p class="how">A 243,000-word dictionary plus exact cover.</p>
           </li>
         </ul>
       </div>
     </section>
 
     <!-- ============ INSTALL ============ -->
-    <section class="section" id="install" aria-labelledby="install-title">
+    <section class="section section-alt" id="install" aria-labelledby="install-title">
       <div class="wrap">
-        <p class="kicker">Install</p>
-        <h2 id="install-title">Set up in about a minute</h2>
-        <p class="section-lede">Pick your browser. Installing from its store is one click: the extension sets itself up and shows up in your extensions list, and it updates itself.</p>
-        <span class="browser-hint inline" data-browser-hint hidden></span>
+        <h2 id="install-title">Install</h2>
+        <p class="section-lede">Pick your browser. From its store it's one click: the extension sets itself up, shows up in your extensions list and updates itself.</p>
+        <p class="browser-hint" data-browser-hint hidden></p>
         <ul class="stores" data-stores>
-          <li class="store" data-store="chrome" style="--g: var(--zip); --g-ink: var(--zip-ink); --g-soft: var(--zip-soft)">
+          <li class="store" data-store="chrome">
             <h3>Chrome Web Store</h3>
             <p>Chrome, Brave, Opera, Arc and Vivaldi on Windows, Mac, Linux and ChromeOS.</p>
             <a class="btn btn-small" data-store-link href="#manual-chromium">Add to Chrome</a>
           </li>
-          <li class="store" data-store="edge" style="--g: var(--wend); --g-ink: var(--wend-ink); --g-soft: var(--wend-soft)">
+          <li class="store" data-store="edge">
             <h3>Edge Add-ons</h3>
-            <p>Microsoft Edge on Windows and Mac. (Edge can also install from the Chrome Web Store.)</p>
+            <p>Microsoft Edge on Windows and Mac. Edge can also install from the Chrome Web Store.</p>
             <a class="btn btn-small" data-store-link href="#manual-chromium">Get it for Edge</a>
           </li>
-          <li class="store" data-store="firefox" style="--g: var(--patches); --g-ink: var(--patches-ink); --g-soft: var(--patches-soft)">
+          <li class="store" data-store="firefox">
             <h3>Firefox Add-ons</h3>
-            <p>Firefox on Windows, Mac and Linux, and <b>Firefox for Android</b>.</p>
+            <p>Firefox on Windows, Mac and Linux, and Firefox for Android.</p>
             <a class="btn btn-small" data-store-link href="#manual-firefox">Add to Firefox</a>
           </li>
-          <li class="store" data-store="safari" style="--g: var(--queens); --g-ink: var(--queens-ink); --g-soft: var(--queens-soft)">
+          <li class="store" data-store="safari">
             <h3>App Store</h3>
-            <p>Safari on <b>Mac, iPhone and iPad</b>. Install the app, then turn the extension on in Safari.</p>
+            <p>Safari on Mac, iPhone and iPad. Install the app, then turn the extension on in Safari.</p>
             <a class="btn btn-small" data-store-link href="#manual-safari">Get it for Safari</a>
           </li>
         </ul>
-        <p class="store-note muted" data-store-note hidden>Store listings marked "coming soon" are in review. Until then, the steps below install the same extension by hand.</p>
+        <p class="store-note" data-store-note hidden>Listings marked "Coming soon" are still in review. Until then, the steps below install the same extension by hand.</p>
 
-        <h3 class="manual-title" id="manual-chromium">Install by hand: Chrome, Edge, Brave, Opera</h3>
+        <h3 class="manual-title" id="manual-chromium">By hand in Chrome, Edge, Brave or Opera</h3>
         <ol class="install-steps">
           <li>
-            <h3>Download the zip</h3>
+            <h4>Download the zip</h4>
             <p><a href="downloads/larpedin.zip" download data-download>larpedin.zip</a> <span class="muted" data-version-inline></span></p>
           </li>
           <li>
-            <h3>Unzip it</h3>
+            <h4>Unzip it</h4>
             <p>Double-click it on a Mac, or right-click and choose <b>Extract All</b> on Windows. Keep the <code>larpedin</code> folder: the browser loads the extension from it.</p>
           </li>
           <li>
-            <h3>Open the extensions page</h3>
-            <p>Web pages can't link there, so copy the address and paste it in the address bar:</p>
+            <h4>Open the extensions page</h4>
+            <p>Web pages can't link there, so copy the address and paste it in the address bar.</p>
             <p><button type="button" class="btn btn-copy" data-copy="chrome://extensions" data-ext-page><span data-copy-label>Copy chrome://extensions</span></button></p>
           </li>
           <li>
-            <h3>Turn on Developer mode</h3>
+            <h4>Turn on Developer mode</h4>
             <p>The switch is in the top-right corner (bottom-left in Edge).</p>
           </li>
           <li>
-            <h3>Click "Load unpacked"</h3>
+            <h4>Click "Load unpacked"</h4>
             <p>Choose the <code>larpedin</code> folder, the one that contains <code>manifest.json</code>.</p>
           </li>
           <li>
-            <h3>Open a LinkedIn game</h3>
-            <p>A small panel appears on the game page. Press <kbd>Alt</kbd>+<kbd>S</kbd> (<kbd>Option</kbd>+<kbd>S</kbd> on a Mac) or click <b>Solve</b>.</p>
+            <h4>Open a LinkedIn game</h4>
+            <p>A small panel appears on the page. Press <kbd>Alt</kbd>+<kbd>S</kbd> (<kbd>Option</kbd>+<kbd>S</kbd> on a Mac) or click <b>Solve</b>.</p>
           </li>
         </ol>
         <div class="manual-more">
           <div id="manual-firefox">
-            <h3>Firefox, before the store listing is live</h3>
-            <p>Firefox only keeps add-ons it has signed, so a hand-loaded copy lasts until you quit Firefox. Download <a href="downloads/larpedin-firefox.zip" download>larpedin-firefox.zip</a>, open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and pick the zip.</p>
+            <h4>Firefox, before the store listing</h4>
+            <p>Firefox only keeps add-ons it has signed, so a hand-loaded copy lasts until you quit. Download <a href="downloads/larpedin-firefox.zip" download>larpedin-firefox.zip</a>, open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and pick the zip.</p>
           </div>
           <div id="manual-safari">
-            <h3>Safari, iPhone and iPad</h3>
-            <p>Apple only runs Safari extensions that come inside an app, so there's no hand install. Once the App Store app is out: install it, then turn on LarpedIn in Safari's Extensions settings (on iPhone: Settings &gt; Apps &gt; Safari &gt; Extensions) and allow it on linkedin.com.</p>
+            <h4>Safari, iPhone and iPad</h4>
+            <p>Apple only runs Safari extensions that come inside an app, so there's no hand install. Once the App Store app is out, install it and turn on LarpedIn in Safari's extension settings (on iPhone: Settings, Apps, Safari, Extensions).</p>
           </div>
         </div>
         <details class="more">
           <summary>Updating, removing, or using a userscript instead</summary>
           <div class="more-body">
             <p><b>Update:</b> store installs update themselves. For a hand install, download the new zip, replace the old folder's contents, then click the reload arrow on the LarpedIn card in the extensions page.</p>
-            <p><b>Remove:</b> click <b>Remove</b> on the card in <code>chrome://extensions</code>, then delete the folder.</p>
-            <p><b>Tampermonkey:</b> if you already use the Tampermonkey extension, you can install the <a href="downloads/larpedin.user.js" data-userscript>userscript version</a> instead. It runs the same code.</p>
+            <p><b>Remove:</b> click <b>Remove</b> on the card in the extensions page, then delete the folder.</p>
+            <p><b>Tampermonkey:</b> if you already use Tampermonkey, you can install the <a href="downloads/larpedin.user.js" data-userscript>userscript version</a> instead. It runs the same code, without the toolbar popup.</p>
           </div>
         </details>
       </div>
     </section>
 
     <!-- ============ USAGE ============ -->
-    <section class="section section-alt" id="usage" aria-labelledby="usage-title">
+    <section class="section" id="usage" aria-labelledby="usage-title">
       <div class="wrap usage">
         <div>
-          <p class="kicker">Using it</p>
           <h2 id="usage-title">One shortcut, one small panel</h2>
           <dl class="features">
             <div>
               <dt><kbd>Alt</kbd>+<kbd>S</kbd></dt>
-              <dd>Solve the puzzle on screen. On a Mac it's <kbd>Option</kbd>+<kbd>S</kbd>.</dd>
+              <dd>Solves the puzzle on screen. On a Mac it's <kbd>Option</kbd>+<kbd>S</kbd>.</dd>
             </div>
             <div>
-              <dt>Timing panel</dt>
-              <dd>Shows how long each step took: read, solve and input, in milliseconds.</dd>
+              <dt>Timings</dt>
+              <dd>The panel shows how long reading, solving and playing took.</dd>
             </div>
             <div>
               <dt>Auto-solve</dt>
-              <dd>Optional. Tick <b>auto</b> and each new, unsolved board is solved as soon as it appears.</dd>
+              <dd>Optional. Every new, unsolved board is solved as soon as it appears.</dd>
             </div>
             <div>
-              <dt>Puzzle archive</dt>
-              <dd>Every puzzle you open is saved in your browser. <b>Export</b> downloads them all as a JSON file.</dd>
+              <dt>Your archive</dt>
+              <dd>Every puzzle you open is kept in your browser. Export saves them all as one JSON file.</dd>
             </div>
           </dl>
         </div>
-        <figure class="panel-mock" aria-label="Example of the in-page panel">
-          <div class="panel-ui">
-            <div class="panel-row">
-              <b>Solver</b>
-              <span class="pbtn">Solve (Alt+S)</span>
-              <span class="pchk"><span class="box" aria-hidden="true">✓</span> auto</span>
-              <span class="pbtn">Export</span>
+        <figure class="usage-figure">
+          <div class="lp-panel lp-idle" aria-hidden="true">
+            <div class="lp-head">
+              <img src="assets/icon.svg" width="28" height="28" alt="">
+              <div><b>LarpedIn</b><span><i class="dot dot-queens"></i>Queens</span></div>
             </div>
-            <div class="panel-out">queens (hotkey): read 0.1 ms · solve 0.0 ms · input 41.8 ms · total 41.9 ms</div>
+            <div class="lp-status">
+              <div class="lp-steps"><span>Read</span><span>Solve</span><span>Play</span></div>
+              <p class="lp-msg">Board found. Ready when you are.</p>
+            </div>
+            <div class="lp-solve">Solve <kbd>Alt</kbd><kbd>S</kbd></div>
+            <div class="lp-row"><span>Auto-solve<small>Solve new boards automatically</small></span><i class="lp-switch"></i></div>
           </div>
-          <figcaption>The panel sits in the bottom-left corner of game pages. Entering the moves takes longest, because the game needs time to register each one.</figcaption>
+          <figcaption>The panel sits in a corner of the game page. Drag it anywhere, or fold it into a small pill.</figcaption>
         </figure>
       </div>
     </section>
 
     <!-- ============ FAQ ============ -->
-    <section class="section" id="faq" aria-labelledby="faq-title">
+    <section class="section section-alt" id="faq" aria-labelledby="faq-title">
       <div class="wrap narrow">
-        <p class="kicker">FAQ</p>
-        <h2 id="faq-title">Honest answers</h2>
-
+        <h2 id="faq-title">Questions</h2>
         <div class="faq">
           <details>
             <summary>Is this made by LinkedIn?</summary>
@@ -344,7 +332,7 @@
           </details>
           <details>
             <summary>What does it read, and does it send my data anywhere?</summary>
-            <p>It sends nothing anywhere. We checked the code, and here's exactly what it does:</p>
+            <p>It sends nothing anywhere. Here is exactly what it does:</p>
             <ul>
               <li>It only runs on <code>www.linkedin.com</code>, and does nothing unless the address is one of the game pages.</li>
               <li>On a game page it reads the puzzle grid and nothing else: no profile, feed, messages or contacts.</li>
@@ -385,9 +373,10 @@
     <!-- ============ FINAL CTA ============ -->
     <section class="final" aria-labelledby="final-title">
       <div class="wrap final-inner">
+        <img src="assets/icon.svg" width="64" height="64" alt="">
         <h2 id="final-title">Ready to larp?</h2>
         <a class="btn btn-big btn-invert" href="#install" data-install-primary><span data-install-label>Install LarpedIn</span></a>
-        <p class="meta"><span data-version>Free, open source</span></p>
+        <p class="meta" data-version>Free and open source</p>
       </div>
     </section>
   </main>
@@ -395,7 +384,7 @@
   <footer class="site-footer">
     <div class="wrap footer-inner">
       <div>
-        <p class="brand footer-brand"><img src="assets/icon.svg" width="24" height="24" alt=""> LarpedIn</p>
+        <p class="brand footer-brand"><img src="assets/icon.svg" width="24" height="24" alt="">LarpedIn</p>
         <p class="fine">Not affiliated with, endorsed by, or sponsored by LinkedIn Corporation or Microsoft. LinkedIn and the names of its games are trademarks of their respective owners. Automating LinkedIn may break its User Agreement; use at your own risk. Provided as is, without warranty.</p>
       </div>
       <ul class="footer-links">

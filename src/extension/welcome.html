@@ -13,8 +13,6 @@
   .hero p { font-size: 17px; color: var(--ll-muted); max-width: 560px; }
   .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px;
     border-radius: 999px; background: var(--ll-surface2); border: 1px solid var(--ll-border); color: var(--ll-muted); }
-  .stripe { display: flex; height: 6px; width: 120px; border-radius: 3px; overflow: hidden; }
-  .stripe span { flex: 1; background: var(--acc); }
   section > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ll-muted); margin-bottom: 14px; }
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .step { padding: 18px; display: flex; flex-direction: column; gap: 6px; }
@@ -23,7 +21,7 @@
   .step h3 { font-size: 16px; }
   .step p { color: var(--ll-muted); font-size: 14px; }
   .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-  .game { padding: 16px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; border-top: 4px solid var(--acc); }
+  .game { padding: 16px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; }
   .game:hover { box-shadow: 0 0 0 1px var(--acc); }
   .game h3 { font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
   .game h3 .open { font-size: 12px; font-weight: 600; color: var(--acc); }
@@ -53,7 +51,6 @@
     <span class="mark" data-mark="64"></span>
     <h1>Welcome to LarpedIn</h1>
     <p>Solves LinkedIn's daily puzzles right on the page: it reads the board, finds the answer in milliseconds, and plays it for you.</p>
-    <div class="stripe" id="stripe" aria-hidden="true"></div>
     <span class="chip">Not affiliated with, endorsed by or connected to LinkedIn</span>
   </header>
 

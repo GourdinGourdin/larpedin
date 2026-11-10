@@ -1,4 +1,4 @@
-// LarpedIn site: version info, store buttons per browser, copy button, hero board and the Read → Solve → Play demo.
+// LarpedIn site: version info, store buttons per browser, copy button and the Read → Solve → Play demo.
 (() => {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
@@ -11,7 +11,7 @@
   fetch('downloads/latest.json', { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .then((info) => {
-      const label = `v${info.version} · ${kb(info.size)} · free, open source`;
+      const label = `Version ${info.version}, ${kb(info.size)}. Free and open source.`;
       $$('[data-version]').forEach((el) => (el.textContent = label));
       $$('[data-version-inline]').forEach((el) => (el.textContent = `(v${info.version}, ${kb(info.size)})`));
       $$('[data-download]').forEach((a) => {
@@ -108,27 +108,6 @@
       setTimeout(() => { label.textContent = original; btn.classList.remove('copied'); }, 2600);
     });
   });
-
-  // ---------------- hero board (decorative) ----------------
-  (function heroBoard() {
-    const board = $('[data-hero-board]');
-    if (!board) return;
-    const N = 6;
-    const colors = ['var(--zip)', 'var(--queens)', 'var(--tango)', 'var(--patches)', 'var(--wend)'];
-    // snake order through a 6x6 grid
-    const order = [];
-    for (let r = 0; r < N; r++) for (let k = 0; k < N; k++) order.push(r * N + (r % 2 ? N - 1 - k : k));
-    const cells = Array.from({ length: N * N }, () => document.createElement('span'));
-    order.forEach((idx, i) => {
-      const c = cells[idx];
-      c.style.setProperty('--i', i);
-      c.style.setProperty('--c', colors[Math.floor(i / (N * N / colors.length + 0.01))]);
-    });
-    [0, 11, 17, 24, 35].forEach((i) => cells[order[i]].classList.add('dot'));
-    board.append(...cells);
-    const start = () => cells.forEach((c) => c.classList.add('on'));
-    if (reduceMotion.matches) start(); else setTimeout(start, 300);
-  })();
 
   // ---------------- Read → Solve → Play demo ----------------
   (function demo() {
@@ -253,7 +232,7 @@
         ghost.setAttribute('points', done && stage === 1 || stage === 2 ? pts(solution) : '');
         if (stage === 1) {
           const backs = events.slice(0, k).filter((e) => e < 0).length;
-          say(done ? `solved: ${events.length} steps, ${backs} backtracks` : `search: ${k} steps · ${backs} backtracks`);
+          say(done ? `solved: ${events.length} steps, ${backs} backtracks` : `search: ${k} steps, ${backs} backtracks`);
         }
       } else {
         tryPath.setAttribute('points', ''); ghost.setAttribute('points', '');
