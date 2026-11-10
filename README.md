@@ -33,9 +33,15 @@ The build writes one package per browser family:
   **Developer mode**, click **Load unpacked** and pick the folder.
 - `dist/firefox/`: Firefox desktop and Android (event-page background, AMO id). For a quick try,
   `about:debugging` > **Load Temporary Add-on**.
+- `dist/firefox-selfhosted/`: the same plus `gecko.update_url`. `npm run sign:firefox` signs it with Mozilla
+  (unlisted channel, needs `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` in the environment) into
+  `site/downloads/larpedin.xpi`, a one-click, self-updating Firefox install with no store listing.
 - `dist/safari/`: input for `sh scripts/safari.sh`, which needs full Xcode and makes a macOS + iOS app.
 - `dist/store/`: the zips to upload to each store. [docs/PUBLISHING.md](docs/PUBLISHING.md) covers accounts, fees and review.
-- `dist/larpedin.user.js`: a userscript for Tampermonkey (panel only).
+- `dist/larpedin.user.js`: a userscript for Tampermonkey, Violentmonkey and the Safari "Userscripts" app. It
+  runs in the page itself (`@grant none`, `@inject-into page`) and updates through `@updateURL`. Panel only;
+  settings live in `localStorage`.
+- `dist/store-assets/` (`npm run assets:store`): screenshots, promo tile and marquee for the stores.
 
 A welcome page opens on install. Reload any LinkedIn tab that was already open.
 
@@ -46,6 +52,8 @@ A welcome page opens on install. Reload any LinkedIn tab that was already open.
   and offers **Copy debug info** (JSON with the error, page, settings and the puzzle as read).
 - Drag the card by its header; the position is remembered. **–** (or Esc) folds it into a pill; click the pill to open it.
 - **Auto-solve** solves as soon as an unsolved board appears.
+- **Appearance:** the light cream theme is the default. The welcome/options page and the panel's gear offer
+  Light, Dark and Match device; the panel, popup and welcome page all follow it.
 - The gear opens per-game settings (Zip input and drag path, Patches pace) and **Export puzzles**, which
   downloads every puzzle seen so far as JSON.
 - **Toolbar popup:** status of the current tab, **Solve now**, links to each game, auto-solve and the shortcut.
@@ -54,6 +62,13 @@ A welcome page opens on install. Reload any LinkedIn tab that was already open.
 
 Everything runs in the browser: no account, no server, no analytics. Permissions: `storage` only, plus
 content scripts on `https://www.linkedin.com/*`.
+
+## Privacy
+
+LarpedIn collects no data. It has no server and makes no network requests of its own. It reads the puzzle
+board on `https://www.linkedin.com/games/*` pages, solves it locally and clicks on it. Settings are kept in
+your browser's own storage (`chrome.storage.sync`, which your browser may sync between your devices) and the
+puzzles you open are kept in the page's `localStorage` so you can export them. Nothing is sent anywhere.
 
 ### How the pieces fit
 
@@ -72,10 +87,19 @@ Screenshots for the website: `npm run screenshots` (headless Chromium on local m
 ## Dev
 
 ```bash
+npm run test:ext    # build, then drive the real extension in Chromium (see below)
 npm test            # solve every puzzle in fixtures/
 npm run bench       # Zip stress test: node scripts/bench-zip.ts <size> <count> <numbers> <walls>
 npm run typecheck
 ```
+
+`npm run test:ext` (`scripts/test-ext.ts`) launches Chromium with `dist/extension` loaded and answers
+every `https://www.linkedin.com/games/*` request with a mock page built from `fixtures/2026-11-09.json`
+(`scripts/mock/`). The mock boards expose the same React-props shape the reader expects and judge the
+moves they receive, so a pass means the board really is solved. It covers, for all five games, the Solve
+button and Alt+S; the popup; the welcome page opening on install; settings travelling from the popup to the
+page (auto-solve, Appearance); client-side navigation between games; the userscript injected as a page
+script; and `web-ext lint` on the Firefox builds. It never touches linkedin.com.
 
 Add exported puzzles to `fixtures/` (same shape as `fixtures/2026-11-09.json`) to grow the test set.
 
@@ -85,7 +109,7 @@ Benchmarks on seeded random puzzles (`npm run bench`, `bench:queens`, `bench:tan
 
 | | Read | Solve (median / worst) | Play on LinkedIn |
 |---|---|---|---|
-| Zip | checked on the live page | 8×8: 0.16 / 5 ms · 10×10: 0.7 / 34 ms | **untested** |
+| Zip | checked on the live page | 8×8: 0.16 / 5 ms; 10×10: 0.7 / 34 ms | **untested** |
 | Queens | checked | 7–11 (one answer): 0.01 / 0.05 ms | **untested** |
 | Tango | checked; matches LinkedIn's own solution | 6×6: 0.01 / 0.04 ms | **untested** |
 | Patches | checked | 6–9: 0.03 / 0.6 ms | **untested** |

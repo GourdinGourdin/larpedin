@@ -40,7 +40,8 @@
   .promo b { color: var(--ll-ink); }
   .promo .open { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 650; white-space: nowrap; color: var(--ll-ink); }
   .promo:hover { box-shadow: 0 0 0 1.5px var(--ll-ink); }
-  @media (prefers-color-scheme: dark) { .promo .gm svg { box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); } }
+  :root[data-theme="dark"] .promo .gm svg { box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); }
+  @media (prefers-color-scheme: dark) { :root[data-theme="auto"] .promo .gm svg { box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); } }
   .notes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .note { padding: 18px; display: flex; flex-direction: column; gap: 6px; }
   .note h3 { font-size: 15px; }
@@ -87,6 +88,14 @@
         <span>Keyboard shortcut<span class="sub">Works on any LinkedIn game page.</span></span>
         <span class="right"><span id="shortcut"></span><button class="ghost" id="change-shortcut" type="button">Change</button></span>
       </div>
+      <div id="appearance"><fieldset class="field">
+        <legend>Appearance<span class="sub">Light is the default. Match device follows your system setting.</span></legend>
+        <div class="seg">
+          <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+          <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+          <label><input type="radio" name="theme" value="auto"><span>Match device</span></label>
+        </div>
+      </fieldset></div>
       <div id="game-settings" style="display:flex;flex-direction:column;gap:18px"></div>
     </div>
   </section>

@@ -105,12 +105,22 @@ export function gameTheme(id: string | null | undefined): GameTheme {
   return { name, blurb: '', url: `https://www.linkedin.com/games/${id ?? ''}`, ...BRAND_ACCENT };
 }
 
-/** CSS custom properties for the base palette, light by default and dark under prefers-color-scheme. */
-export function baseCssVars(selector = ':host'): string {
+/**
+ * Wrap dark-mode rules for the Appearance setting. The scope element carries
+ * data-theme="light" | "dark" | "auto": light (the default) needs no rules,
+ * dark applies always, auto applies when the device prefers dark.
+ * `rules` gets the scope selector to prefix each rule with.
+ */
+export function darkRules(scope: ':host' | ':root', rules: (scope: string) => string): string {
+  const at = (v: string) => (scope === ':host' ? `:host([data-theme="${v}"])` : `:root[data-theme="${v}"]`);
+  return `${rules(at('dark'))}@media (prefers-color-scheme:dark){${rules(at('auto'))}}`;
+}
+
+/** CSS custom properties for the base palette: light by default, dark per the data-theme attribute. */
+export function baseCssVars(scope: ':host' | ':root' = ':host'): string {
   const decl = (p: Record<string, string>) =>
     Object.entries(p).map(([k, v]) => `--ll-${k}:${v};`).join('');
-  return `${selector}{${decl(BASE.light)}}` +
-    `@media (prefers-color-scheme: dark){${selector}{${decl(BASE.dark)}}}`;
+  return `${scope}{${decl(BASE.light)}}` + darkRules(scope, (s) => `${s}{${decl(BASE.dark)}}`);
 }
 
 /**

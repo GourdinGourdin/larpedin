@@ -1,6 +1,8 @@
 /* Shared styles for the popup and the welcome page. Colours come from
    theme.ts, injected at runtime as --ll-* variables (see common.ts). */
-:root { color-scheme: light dark; }
+:root { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) { :root[data-theme="auto"] { color-scheme: dark; } }
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { margin: 0; }
@@ -17,13 +19,15 @@ button { cursor: pointer; }
 h1, h2, h3, p { margin: 0; }
 
 .mark svg { display: block; }
-@media (prefers-color-scheme: dark) { .mark svg { border-radius: 25%; box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); } }
+:root[data-theme="dark"] .mark svg { border-radius: 25%; box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); }
+@media (prefers-color-scheme: dark) { :root[data-theme="auto"] .mark svg { border-radius: 25%; box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); } }
 .sub { display: block; font-size: 12px; font-weight: 400; color: var(--ll-muted); }
 .muted { color: var(--ll-muted); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); flex: none; }
 
 .card { background: var(--ll-surface); border-radius: 22px; box-shadow: 0 1px 0 rgba(35, 30, 24, .06), inset 0 0 0 1px var(--ll-border); }
-@media (prefers-color-scheme: dark) { .card { box-shadow: 0 1px 0 rgba(0, 0, 0, .35), inset 0 0 0 1px var(--ll-border); } }
+:root[data-theme="dark"] .card { box-shadow: 0 1px 0 rgba(0, 0, 0, .35), inset 0 0 0 1px var(--ll-border); }
+@media (prefers-color-scheme: dark) { :root[data-theme="auto"] .card { box-shadow: 0 1px 0 rgba(0, 0, 0, .35), inset 0 0 0 1px var(--ll-border); } }
 
 kbd {
   display: inline-block; font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;

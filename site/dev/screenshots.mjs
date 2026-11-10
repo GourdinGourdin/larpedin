@@ -51,14 +51,18 @@ try {
     if (s.name === 'desktop-1440') {
       const v = await page.textContent('[data-version]');
       check(/^Version \d/.test(v), `version label "${v}"`);
-      const primary = await page.textContent('.hero [data-install-primary]');
-      check(/Add to Chrome/.test(primary), `hero button "${primary.trim()}"`);
-      const detected = await page.getAttribute('.store.is-detected', 'data-store');
-      check(detected === 'chrome', `detected store ${detected}`);
-      const href = await page.getAttribute('#install [data-download]', 'href');
-      check(href === 'downloads/larpedin.zip', `download href ${href}`);
-      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#install [data-download]')]);
-      check(dl.suggestedFilename() === 'larpedin.zip', `clicking Download saves ${dl.suggestedFilename()}`);
+      const primary = await page.textContent('.hero .btn');
+      check(/Install/.test(primary), `hero button "${primary.trim()}"`);
+      check(await page.evaluate(() => !document.querySelector('input[name="browser"]:checked')), 'no browser preselected');
+      await page.locator('#install').scrollIntoViewIfNeeded();
+      await page.click('label.seg:has-text("Chrome")');
+      const us = await page.getAttribute('[data-install-out] a[href$=".user.js"]', 'href');
+      check(us === 'downloads/larpedin.user.js', `Chrome: userscript link ${us}`);
+      await page.click('[data-install-out] details.manual summary');
+      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-install-out] a[download]')]);
+      check(dl.suggestedFilename() === 'larpedin.zip', `by-hand download saves ${dl.suggestedFilename()}`);
+      await page.locator('#install').screenshot({ path: join(out, 'install-chrome.png') });
+      await page.evaluate(() => localStorage.clear());
       // demo frames
       await page.locator('#how').scrollIntoViewIfNeeded();
       for (const [i, label] of [[0, 'read'], [1, 'solve'], [2, 'play']]) {
@@ -70,8 +74,8 @@ try {
       check(/ms/.test(bench), `in-browser bench "${bench}"`);
     }
     if (s.name === 'mobile-390') {
-      const first = await page.getAttribute('[data-stores] .store:first-child', 'data-store');
-      check(first === 'safari', `iPhone Safari: App Store card first (${first})`);
+      check(await page.isVisible('[data-phone-note]'), 'iPhone: phone note shown');
+      check(await page.evaluate(() => !document.querySelector('input[name="browser"]:checked')), 'iPhone: no browser preselected');
     }
     // keyboard focus is visible on the first link
     if (s.name === 'laptop-1024') {
@@ -84,16 +88,16 @@ try {
     await ctx.close();
   }
 
-  // ---- reduced motion + Firefox detection ----
+  // ---- reduced motion + Firefox pick ----
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce',
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14.0; rv:131.0) Gecko/20100101 Firefox/131.0' });
   const page = await ctx.newPage();
   await page.goto(BASE, { waitUntil: 'networkidle' });
   const pressed = await page.getAttribute('[data-demo-toggle]', 'aria-pressed');
   check(pressed === 'true', 'reduced motion: demo starts paused');
-  const ff = await page.getAttribute('[data-stores] .store:first-child', 'data-store');
-  check(ff === 'firefox', `firefox UA: Firefox Add-ons card first (${ff})`);
-  check(/Add to Firefox/.test(await page.textContent('.hero [data-install-primary]')), 'firefox UA: hero says Add to Firefox');
+  await page.click('label.seg:has-text("Firefox")');
+  const ffOut = await page.textContent('[data-install-out]');
+  check(/Tampermonkey|Add to Firefox/.test(ffOut), 'Firefox: an install path is shown');
   await page.screenshot({ path: join(out, 'reduced-motion-firefox-top.png') });
   await page.locator('#how').screenshot({ path: join(out, 'reduced-motion-demo.png') });
   await ctx.close();

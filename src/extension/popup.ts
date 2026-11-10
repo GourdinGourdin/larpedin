@@ -2,7 +2,7 @@
 // Toolbar popup: status of the active tab, quick links, auto-solve, shortcut.
 import { gameTheme } from '../page/theme.ts';
 import { fmtMs, sanitizeSettings, type RuntimeMsg, type Status } from '../page/settings.ts';
-import { canChangeShortcut, gameList, getSettings, injectTheme, kbdHtml, openShortcutSettings, patchSettings, solveShortcut } from './common.ts';
+import { applyTheme, canChangeShortcut, gameList, getSettings, injectTheme, kbdHtml, openShortcutSettings, patchSettings, solveShortcut } from './common.ts';
 
 injectTheme();
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -90,10 +90,13 @@ $('solve').addEventListener('click', async () => {
 
 // ---------- settings ----------
 const auto = $<HTMLInputElement>('auto');
-getSettings().then((s) => { auto.checked = s.auto; });
+getSettings().then((s) => { auto.checked = s.auto; applyTheme(s.theme); });
 auto.addEventListener('change', () => patchSettings({ auto: auto.checked }));
 chrome.storage.onChanged.addListener((ch, area) => {
-  if (area === 'sync' && ch.settings) auto.checked = sanitizeSettings(ch.settings.newValue).auto;
+  if (area !== 'sync' || !ch.settings) return;
+  const s = sanitizeSettings(ch.settings.newValue);
+  auto.checked = s.auto;
+  applyTheme(s.theme);
 });
 
 solveShortcut().then((s) => {

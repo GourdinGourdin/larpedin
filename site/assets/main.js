@@ -1,4 +1,4 @@
-// LarpedIn site: version info, store buttons per browser, copy button and the Read → Solve → Play demo.
+// LarpedIn site: theme toggle, browser picker, copy button and the Read → Solve → Play demo.
 (() => {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
@@ -6,108 +6,162 @@
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const SVG = 'http://www.w3.org/2000/svg';
 
-  // ---------------- version + size from downloads/latest.json ----------------
-  const kb = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`);
-  fetch('downloads/latest.json', { cache: 'no-cache' })
-    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then((info) => {
-      const label = `Version ${info.version}, ${kb(info.size)}. Free and open source.`;
-      $$('[data-version]').forEach((el) => (el.textContent = label));
-      $$('[data-version-inline]').forEach((el) => (el.textContent = `(v${info.version}, ${kb(info.size)})`));
-      $$('[data-download]').forEach((a) => {
-        a.setAttribute('href', `downloads/${info.file}`);
-        if (info.sha256) a.title = `SHA-256 ${info.sha256}`;
-      });
-      if (!info.userscript) $$('[data-userscript]').forEach((a) => a.replaceWith(document.createTextNode('userscript version (from the GitHub repo)')));
-    })
-    .catch(() => { /* keep the static fallback text */ });
-
-  // ---------------- stores + browser detection ----------------
-  // Paste each store's listing URL here once it is published; empty = "coming soon"
-  // (the button then jumps to the hand-install steps for that browser).
+  // ---------------- config ----------------
+  // Paste each store's listing URL once it is published. Empty = not listed yet.
+  // Brave and Opera install from the Chrome Web Store.
   const STORES = {
     chrome: '',  // https://chromewebstore.google.com/detail/<id>
     edge: '',    // https://microsoftedge.microsoft.com/addons/detail/<id>
     firefox: '', // https://addons.mozilla.org/firefox/addon/larpedin/
     safari: '',  // https://apps.apple.com/app/id<id>
   };
-  const MANUAL = { chrome: '#manual-chromium', edge: '#manual-chromium', firefox: '#manual-firefox', safari: '#manual-safari' };
+  const MANAGERS = {
+    tampermonkey: 'https://www.tampermonkey.net/',
+    userscripts: 'https://apps.apple.com/app/userscripts/id1463298887', // free, Safari
+  };
+  // storeKey: which STORES entry serves the browser. page: address to open for hand installs.
+  const BROWSERS = {
+    chrome:  { name: 'Chrome',  storeKey: 'chrome',  chromium: true, page: 'chrome://extensions' },
+    edge:    { name: 'Edge',    storeKey: 'edge',    chromium: true, page: 'edge://extensions' },
+    brave:   { name: 'Brave',   storeKey: 'chrome',  chromium: true, page: 'brave://extensions' },
+    opera:   { name: 'Opera',   storeKey: 'chrome',  chromium: true, page: 'opera://extensions' },
+    firefox: { name: 'Firefox', storeKey: 'firefox', chromium: false, page: 'about:debugging#/runtime/this-firefox' },
+    safari:  { name: 'Safari',  storeKey: 'safari',  chromium: false, page: '' },
+  };
+  const KEY = 'larpedin-browser', THEME_KEY = 'larpedin-theme';
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
 
-  function detect() {
-    const ua = navigator.userAgent;
-    const brands = (navigator.userAgentData?.brands || []).map((b) => b.brand).join(' ');
-    const android = /Android/i.test(ua);
-    const ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-    const mobile = android || ios || (navigator.userAgentData?.mobile ?? /Mobile/i.test(ua));
-    let name = 'Chrome', store = 'chrome', extPage = 'chrome://extensions';
-    if (/Firefox\/|FxiOS\//.test(ua)) { name = 'Firefox'; store = 'firefox'; extPage = 'about:addons'; }
-    else if (/Edg(e|A|iOS)?\//.test(ua) || /Edge/.test(brands)) { name = 'Edge'; store = 'edge'; extPage = 'edge://extensions'; }
-    else if (/OPR\//.test(ua) || /Opera/.test(brands)) { name = 'Opera'; extPage = 'opera://extensions'; }
-    else if (/Brave/.test(brands) || navigator.brave) { name = 'Brave'; extPage = 'brave://extensions'; }
-    else if (/Vivaldi/.test(ua)) { name = 'Vivaldi'; extPage = 'vivaldi://extensions'; }
-    else if (/Safari\//.test(ua) && !/Chrome\/|Chromium\/|CriOS\//.test(ua)) { name = 'Safari'; store = 'safari'; }
-    // Phones: only Firefox for Android and Safari on iOS run extensions.
-    let hint = '';
-    if (ios) {
-      if (store !== 'safari') hint = 'On iPhone and iPad, extensions only run in Safari. Open this page in Safari to install.';
-      store = 'safari'; name = 'Safari';
-    } else if (android && store !== 'firefox') {
-      hint = `${name} on Android can't run extensions. Install Firefox for Android, then add LarpedIn from Firefox Add-ons.`;
-      store = 'firefox'; name = 'Firefox';
-    }
-    return { name, store, extPage, mobile, hint };
-  }
-
-  (function stores() {
-    const b = detect();
-    let missing = false;
-    $$('[data-store]').forEach((card) => {
-      const id = card.getAttribute('data-store');
-      const link = $('[data-store-link]', card);
-      const url = STORES[id];
-      card.classList.toggle('is-detected', id === b.store);
-      if (url) { link.href = url; link.target = '_blank'; link.rel = 'noopener'; }
-      else { link.href = MANUAL[id]; link.insertAdjacentHTML('afterend', '<span class="soon">Coming soon</span>'); missing = true; }
-    });
-    if (missing) $$('[data-store-note]').forEach((el) => (el.hidden = false));
-    // Put the visitor's browser first.
-    const list = $('[data-stores]'); const mine = $(`[data-store="${b.store}"]`);
-    if (list && mine) list.prepend(mine);
-
-    const url = STORES[b.store];
-    $$('[data-install-primary]').forEach((a) => {
-      a.href = url || (b.mobile ? MANUAL[b.store] : '#install');
-      if (url) { a.target = '_blank'; a.rel = 'noopener'; }
-      const label = $('[data-install-label]', a);
-      if (a.hasAttribute('data-short')) a.textContent = `Add to ${b.name}`;
-      else if (label) label.textContent = `Add to ${b.name}, it's free`;
-    });
-    $$('[data-ext-page]').forEach((btn) => {
-      btn.setAttribute('data-copy', b.extPage);
-      const l = $('[data-copy-label]', btn); if (l) l.textContent = `Copy ${b.extPage}`;
-    });
-    if (b.hint) $$('[data-browser-hint]').forEach((el) => { el.textContent = b.hint; el.hidden = false; });
+  // ---------------- theme toggle ----------------
+  (function theme() {
+    const btn = $('[data-theme-toggle]');
+    const root = document.documentElement;
+    const apply = (t, save) => {
+      root.setAttribute('data-theme', t);
+      const m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'dark' ? '#17130F' : '#F7F0E1');
+      const c = $('meta[name="color-scheme"]'); if (c) c.setAttribute('content', t);
+      if (btn) btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+      if (save) store.set(THEME_KEY, t);
+    };
+    apply(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light', false);
+    btn?.addEventListener('click', () => apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true));
   })();
 
-  // ---------------- copy buttons ----------------
-  $$('[data-copy]').forEach((btn) => {
-    const label = $('[data-copy-label]', btn) || btn;
-    const original = label.textContent;
-    btn.addEventListener('click', async () => {
-      const text = btn.getAttribute('data-copy');
-      let ok = false;
-      try { await navigator.clipboard.writeText(text); ok = true; } catch {
-        const ta = Object.assign(document.createElement('textarea'), { value: text });
-        ta.style.cssText = 'position:fixed;opacity:0';
-        document.body.append(ta); ta.select();
-        try { ok = document.execCommand('copy'); } catch {}
-        ta.remove();
+  // ---------------- install picker ----------------
+  let info = null; // downloads/latest.json
+  const kb = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`);
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const EXT_ICON = '<svg class="ext" viewBox="0 0 20 20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 4H5.5A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16h9a1.5 1.5 0 0 0 1.5-1.5V12M11 4h5v5M16 4l-7 7"/></svg>';
+  const ua = navigator.userAgent;
+  const isMac = /Mac/.test(navigator.platform || ua) && !/iPhone|iPad/.test(ua);
+  const phone = /Android|iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+
+  const root = $('[data-install]');
+  const out = $('[data-install-out]');
+  const statusEl = $('[data-install-status]');
+  if (root && out) {
+    if (phone) $('[data-phone-note]').hidden = false;
+
+    const shortcut = isMac ? '<kbd>Option</kbd>+<kbd>S</kbd>' : '<kbd>Alt</kbd>+<kbd>S</kbd>';
+
+    function render(id) {
+      const b = BROWSERS[id];
+      if (!b) { out.innerHTML = '<p class="pick-hint">Pick your browser.</p>'; return; }
+      const storeUrl = STORES[b.storeKey];
+      const xpi = id === 'firefox' && info?.xpi?.file ? info.xpi : null;
+      const us = info?.userscript || {};
+      const usFile = us.file || 'larpedin.user.js';
+      const zipFile = info?.file || 'larpedin.zip';
+      let html = '';
+
+      if (storeUrl) {
+        html += `<div class="primary"><a class="btn btn-big" href="${esc(storeUrl)}" target="_blank" rel="noopener">Add to ${b.name}${EXT_ICON}</a></div>`;
+      } else if (xpi) {
+        const meta = xpi.size ? ` <span class="muted">${kb(xpi.size)}</span>` : '';
+        html += `<div class="primary"><a class="btn btn-big" href="downloads/${esc(xpi.file)}">Add to Firefox</a></div>
+          <p class="note">Firefox will ask you to allow the install.${meta}</p>`;
+      } else {
+        const manager = id === 'safari'
+          ? { label: 'Get Userscripts', href: MANAGERS.userscripts, tail: 'A free app from the App Store.' }
+          : { label: 'Get Tampermonkey', href: MANAGERS.tampermonkey, tail: '' };
+        const size = us.size ? ` <span class="muted">${kb(us.size)}</span>` : '';
+        html += `<ol class="isteps">
+          <li><span class="n" aria-hidden="true">1</span><div><a class="btn" href="${manager.href}" target="_blank" rel="noopener">${manager.label}${EXT_ICON}</a>${manager.tail ? `<p class="note">${manager.tail}</p>` : ''}</div></li>
+          <li><span class="n" aria-hidden="true">2</span><div><a class="btn" href="downloads/${esc(usFile)}">Install LarpedIn</a>${size ? `<p class="note">One click. ${kb(us.size)}.</p>` : ''}</div></li>
+          <li><span class="n" aria-hidden="true">3</span><div><p class="step-text">Open a LinkedIn game and press ${shortcut}.</p></div></li>
+        </ol>`;
+        if (b.chromium) html += `<p class="note">${id === 'chrome' ? 'Chrome 138 and later ask' : 'Your browser may ask'} you to turn on "Allow user scripts" for Tampermonkey.</p>`;
+        if (id === 'safari') html += `<p class="note">Prefer Tampermonkey? <a href="${MANAGERS.tampermonkey}" target="_blank" rel="noopener">It works on Safari too</a>.</p>`;
+        if (b.chromium || id === 'firefox') {
+          const hand = b.chromium
+            ? `<ol class="isteps compact">
+                <li><span class="n" aria-hidden="true">1</span><div><p class="step-text"><a href="downloads/${esc(zipFile)}" download>Download larpedin.zip</a>${info?.size ? ` <span class="muted">${kb(info.size)}</span>` : ''} and unzip it.</p></div></li>
+                <li><span class="n" aria-hidden="true">2</span><div><p class="step-text">Open <code>${b.page}</code> in a new tab.</p><button type="button" class="btn btn-copy" data-copy="${b.page}"><span data-copy-label>Copy ${b.page}</span></button></div></li>
+                <li><span class="n" aria-hidden="true">3</span><div><p class="step-text">Turn on <b>Developer mode</b>, choose <b>Load unpacked</b> and pick the unzipped folder.</p></div></li>
+              </ol>`
+            : `<ol class="isteps compact">
+                <li><span class="n" aria-hidden="true">1</span><div><p class="step-text"><a href="downloads/larpedin-firefox.zip" download>Download larpedin-firefox.zip</a>. Don't unzip it.</p></div></li>
+                <li><span class="n" aria-hidden="true">2</span><div><p class="step-text">Open <code>${b.page}</code> in a new tab.</p><button type="button" class="btn btn-copy" data-copy="${b.page}"><span data-copy-label>Copy address</span></button></div></li>
+                <li><span class="n" aria-hidden="true">3</span><div><p class="step-text">Choose <b>Load Temporary Add-on</b> and pick the zip. It lasts until Firefox closes.</p></div></li>
+              </ol>`;
+          html += `<details class="manual"><summary>Or load the full extension by hand</summary>${hand}</details>`;
+        }
       }
-      label.textContent = ok ? 'Copied! Paste it in the address bar' : `Couldn't copy: type ${text}`;
-      btn.classList.toggle('copied', ok);
-      setTimeout(() => { label.textContent = original; btn.classList.remove('copied'); }, 2600);
+      out.innerHTML = html;
+      wireCopy();
+    }
+
+    function select(id, announce) {
+      render(id);
+      if (announce && BROWSERS[id]) statusEl.textContent = `${BROWSERS[id].name} selected. Install steps follow.`;
+    }
+
+    $$('input[name="browser"]', root).forEach((r) => r.addEventListener('change', () => {
+      store.set(KEY, r.value); select(r.value, true);
+    }));
+    // A returning visitor sees their earlier pick. First visit: nothing selected.
+    const saved = store.get(KEY);
+    if (saved && BROWSERS[saved]) {
+      const r = $(`input[name="browser"][value="${saved}"]`, root);
+      if (r) { r.checked = true; select(saved, false); }
+    }
+
+    fetch('downloads/latest.json', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((j) => {
+        info = j;
+        const v = $('[data-version]');
+        if (v && j.version) v.textContent = `Version ${j.version}. Free and open source.`;
+        const cur = $('input[name="browser"]:checked', root);
+        if (cur) render(cur.value);
+      })
+      .catch(() => { /* keep the static fallback */ });
+  }
+
+  // ---------------- copy buttons ----------------
+  function wireCopy() {
+    $$('[data-copy]:not([data-wired])').forEach((btn) => {
+      btn.setAttribute('data-wired', '');
+      const label = $('[data-copy-label]', btn) || btn;
+      const original = label.textContent;
+      btn.addEventListener('click', async () => {
+        const text = btn.getAttribute('data-copy');
+        let ok = false;
+        try { await navigator.clipboard.writeText(text); ok = true; } catch {
+          const ta = Object.assign(document.createElement('textarea'), { value: text });
+          ta.style.cssText = 'position:fixed;opacity:0';
+          document.body.append(ta); ta.select();
+          try { ok = document.execCommand('copy'); } catch {}
+          ta.remove();
+        }
+        label.textContent = ok ? 'Copied. Paste it in the address bar' : `Couldn't copy: type ${text}`;
+        btn.classList.toggle('copied', ok);
+        setTimeout(() => { label.textContent = original; btn.classList.remove('copied'); }, 2600);
+      });
     });
-  });
+  }
 
   // ---------------- Read → Solve → Play demo ----------------
   (function demo() {

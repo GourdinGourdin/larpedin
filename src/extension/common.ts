@@ -1,16 +1,32 @@
 /// <reference types="chrome" />
 // Shared by the popup and the welcome/options page.
-import { BASE, BRAND, GAME_THEME, baseCssVars, markSvg, type GameTheme } from '../page/theme.ts';
-import { DEFAULT_SETTINGS, GAME_SETTINGS, sanitizeSettings, type Settings } from '../page/settings.ts';
+import { BASE, BRAND, GAME_THEME, baseCssVars, darkRules, markSvg, type GameTheme } from '../page/theme.ts';
+import { DEFAULT_SETTINGS, GAME_SETTINGS, sanitizeSettings, sanitizeTheme, type Settings, type Theme } from '../page/settings.ts';
+
+const THEME_CACHE = 'larp-theme';
+
+/**
+ * Set the Appearance on this page (data-theme on <html>) and remember it, so
+ * the next open paints in the right theme before the stored settings load.
+ */
+export function applyTheme(theme: Theme) {
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem(THEME_CACHE, theme); } catch {}
+}
 
 /** Inject the palette as CSS variables (--ll-*) and per-game accent classes. */
 export function injectTheme() {
+  let cached: Theme = 'light';
+  try { cached = sanitizeTheme(localStorage.getItem(THEME_CACHE)); } catch {}
+  document.documentElement.dataset.theme = cached;
   const games = Object.entries(GAME_THEME as Record<string, GameTheme>)
-    .map(([id, t]) => `.g-${id}{--acc:${t.accent};--on-acc:${t.onAccent};--acc-ink:${t.ink}}@media (prefers-color-scheme:dark){.g-${id}{--acc:${t.accentDark};--on-acc:${BASE.dark.bg};--acc-ink:${t.accentDark}}}`)
+    .map(([id, t]) => `.g-${id}{--acc:${t.accent};--on-acc:${t.onAccent};--acc-ink:${t.ink}}` +
+      darkRules(':root', (s) => `${s} .g-${id}{--acc:${t.accentDark};--on-acc:${BASE.dark.bg};--acc-ink:${t.accentDark}}`))
     .join('');
   const style = document.createElement('style');
   style.textContent = baseCssVars(':root') +
-    `:root{--acc:${BASE.light.ink};--on-acc:${BASE.light.bg};--acc-ink:${BASE.light.ink}}@media (prefers-color-scheme:dark){:root{--acc:${GAME_THEME.zip.accentDark};--on-acc:${BASE.dark.bg};--acc-ink:${GAME_THEME.zip.accentDark}}}` +
+    `:root{--acc:${BASE.light.ink};--on-acc:${BASE.light.bg};--acc-ink:${BASE.light.ink}}` +
+    darkRules(':root', (s) => `${s}{--acc:${GAME_THEME.zip.accentDark};--on-acc:${BASE.dark.bg};--acc-ink:${GAME_THEME.zip.accentDark}}`) +
     games;
   document.head.prepend(style);
   for (const el of document.querySelectorAll<HTMLElement>('[data-mark]')) el.innerHTML = markSvg(+el.dataset.mark! || 32);

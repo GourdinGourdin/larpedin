@@ -16,14 +16,18 @@ export interface Settings {
   zipDrag: 'cells' | 'turns';
   /** Patches drag pacing (read by games.ts from localStorage['lgs-patches-pace']). */
   patchesPace: 'task' | 'sync' | 'frame';
+  /** Appearance: the cream light theme (default), the warm dark theme, or follow the device. */
+  theme: Theme;
 }
 
+export type Theme = 'light' | 'dark' | 'auto';
+
 export const DEFAULT_SETTINGS: Settings = {
-  auto: false, zipInput: 'mouse', zipDrag: 'cells', patchesPace: 'task',
+  auto: false, zipInput: 'mouse', zipDrag: 'cells', patchesPace: 'task', theme: 'light',
 };
 
 export interface ChoiceSetting {
-  key: Exclude<keyof Settings, 'auto'>;
+  key: Exclude<keyof Settings, 'auto' | 'theme'>;
   label: string;
   hint: string;
   options: { value: string; label: string }[];
@@ -49,11 +53,22 @@ export const GAME_SETTINGS: Record<string, ChoiceSetting[]> = {
   ],
 };
 
+/** The Appearance setting, shown in the panel and on the welcome/options page. */
+export const THEME_SETTING = {
+  key: 'theme' as const,
+  label: 'Appearance',
+  hint: 'Light is the default.',
+  options: [{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'auto', label: 'Match device' }],
+};
+
+export const sanitizeTheme = (x: unknown): Theme => (x === 'dark' || x === 'auto' || x === 'light' ? x : 'light');
+
 /** Keep only known keys with valid values; anything else falls back to the default. */
 export function sanitizeSettings(x: unknown): Settings {
   const o = (x && typeof x === 'object' ? x : {}) as Record<string, unknown>;
   const out: Settings = { ...DEFAULT_SETTINGS };
   if (typeof o.auto === 'boolean') out.auto = o.auto;
+  out.theme = sanitizeTheme(o.theme);
   for (const list of Object.values(GAME_SETTINGS)) {
     for (const s of list) {
       const v = o[s.key];

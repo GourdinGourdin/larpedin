@@ -1,6 +1,7 @@
 // Builds LarpedIn:
 //   dist/extension/              unpacked MV3 extension for Chrome, Edge, Brave, Opera
 //   dist/firefox/, dist/safari/  the same files with each browser's manifest
+//   dist/firefox-selfhosted/     the Firefox build plus gecko.update_url, for `npm run sign:firefox` (unlisted, self-hosted XPI)
 //   dist/store/*.zip             store uploads (Chrome Web Store / Edge, Firefox AMO, source for AMO)
 //   dist/larpedin-<v>.zip   dist/extension zipped
 //   dist/larpedin.user.js   userscript (page script only, settings in localStorage)
@@ -54,6 +55,9 @@ const matches = ['https://www.linkedin.com/*'];
 // content.js notices it is in the isolated world and re-injects itself as a
 // <script> from web_accessible_resources (see src/page/main.ts).
 const GECKO_ID = 'larpedin@larpedin.app'; // permanent once published on AMO
+const SITE = 'https://gourdingourdin.github.io/larpedin/';
+const REPO = 'https://github.com/GourdinGourdin/larpedin';
+const UPDATE_URL = `${SITE}downloads/firefox-updates.json`;
 function manifest(target) {
   const m = {
     manifest_version: 3,
@@ -64,7 +68,7 @@ function manifest(target) {
     icons,
     action: { default_title: BRAND.name, default_popup: 'popup.html', default_icon: icons },
     options_ui: { page: 'welcome.html', open_in_tab: true },
-    background: target === 'firefox' ? { scripts: ['background.js'] } : { service_worker: 'background.js' },
+    background: target.startsWith('firefox') ? { scripts: ['background.js'] } : { service_worker: 'background.js' },
     permissions: ['storage'],
     commands: {
       solve: { suggested_key: { default: 'Alt+S' }, description: 'Solve the puzzle on this page' },
@@ -75,13 +79,16 @@ function manifest(target) {
     ],
     web_accessible_resources: [{ resources: ['content.js'], matches }],
   };
-  if (target === 'firefox') {
+  if (target === 'firefox' || target === 'firefox-selfhosted') {
     m.host_permissions = matches; // shown in the install prompt, so content scripts run without an extra click
     m.browser_specific_settings = {
       gecko: { id: GECKO_ID, strict_min_version: '128.0', data_collection_permissions: { required: ['none'] } },
       gecko_android: { strict_min_version: '128.0' },
     };
   }
+  // Self-hosted (unlisted) Firefox build: Firefox checks update_url for new signed XPIs.
+  // addons.mozilla.org rejects update_url on listed add-ons, so the store build has none.
+  if (target === 'firefox-selfhosted') m.browser_specific_settings.gecko.update_url = UPDATE_URL;
   if (target === 'safari') m.browser_specific_settings = { safari: { strict_min_version: '16.4' } };
   return m;
 }
@@ -91,7 +98,7 @@ const zipDir = (dir, zipPath) => {
   execFileSync('zip', ['-qrX', zipPath, '.'], { cwd: dir });
 };
 
-const targets = { chrome: out, firefox: 'dist/firefox', safari: 'dist/safari' };
+const targets = { chrome: out, firefox: 'dist/firefox', 'firefox-selfhosted': 'dist/firefox-selfhosted', safari: 'dist/safari' };
 for (const [target, dir] of Object.entries(targets)) {
   if (dir !== out) { rmSync(dir, { recursive: true, force: true }); cpSync(out, dir, { recursive: true }); }
   writeFileSync(`${dir}/manifest.json`, JSON.stringify(manifest(target), null, 2));
@@ -109,11 +116,19 @@ zipDir(out, `${process.cwd()}/dist/${zipName}`);
 
 writeFileSync('dist/larpedin.user.js', `// ==UserScript==
 // @name         ${BRAND.name}
-// @namespace    larpedin
+// @namespace    ${SITE}
 // @version      ${pkg.version}
 // @description  ${description}
+// @author       LarpedIn
+// @icon         ${SITE}downloads/icon-128.png
+// @homepageURL  ${SITE}
+// @supportURL   ${REPO}/issues
+// @downloadURL  ${SITE}downloads/larpedin.user.js
+// @updateURL    ${SITE}downloads/larpedin.user.js
 // @match        https://www.linkedin.com/*
+// @noframes
 // @grant        none
+// @inject-into  page
 // @run-at       document-idle
 // ==/UserScript==
 ${files['content.js']}`);

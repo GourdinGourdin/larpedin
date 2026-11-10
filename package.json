@@ -1,6 +1,6 @@
 {
   "name": "larpedin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "LarpedIn: solves LinkedIn's daily puzzle games in the browser. Not affiliated with LinkedIn.",
   "main": "index.js",
   "directories": {
@@ -22,7 +22,11 @@
     "site:og": "node site/dev/render-og.mjs",
     "site:art": "node scripts/site-art.ts",
     "icons": "node scripts/icons.ts",
-    "screenshots": "node scripts/build.mjs && node scripts/screenshots.ts"
+    "screenshots": "node scripts/build.mjs && node scripts/screenshots.ts",
+    "test:ext": "node scripts/build.mjs && node scripts/test-ext.ts",
+    "lint:firefox": "web-ext lint --source-dir dist/firefox",
+    "sign:firefox": "node scripts/sign-firefox.mjs",
+    "assets:store": "node scripts/store-assets.ts"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +38,7 @@
     "esbuild": "^0.25.10",
     "playwright-core": "^1.65.0",
     "typescript": "^5.9.3",
+    "web-ext": "^10.8.0",
     "wordlist-english": "^1.2.1"
   },
   "type": "module"

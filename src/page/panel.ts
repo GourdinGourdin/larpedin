@@ -1,8 +1,8 @@
 // The in-page floating card. Lives in a Shadow DOM so LinkedIn's CSS can't
 // reach it (and ours can't leak out); it is position:fixed, so it never
 // shifts the page layout. Draggable by its header; collapses to a pill.
-import { BASE, BRAND, BRAND_ACCENT, baseCssVars, gameTheme, markSvg } from './theme.ts';
-import { GAME_SETTINGS, fmtMs, type Settings, type Status, type Phase } from './settings.ts';
+import { BASE, BRAND, BRAND_ACCENT, baseCssVars, darkRules, gameTheme, markSvg } from './theme.ts';
+import { GAME_SETTINGS, THEME_SETTING, fmtMs, type Settings, type Status, type Phase } from './settings.ts';
 
 export interface PanelHandlers {
   onSolve(): void;
@@ -53,7 +53,7 @@ ${baseCssVars(':host')}
   font:13px/1.4 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
   color:var(--ll-ink);-webkit-font-smoothing:antialiased;
 }
-@media (prefers-color-scheme:dark){:host{--acc:var(--acc-d);--on-acc:${BASE.dark.bg};--acc-ink:var(--acc-d)}.mark svg{border-radius:25%;box-shadow:0 0 0 1px rgba(243,235,221,.14)}}
+${darkRules(':host', (s) => `${s}{--acc:var(--acc-d);--on-acc:${BASE.dark.bg};--acc-ink:var(--acc-d)}${s} .mark svg{border-radius:25%;box-shadow:0 0 0 1px rgba(243,235,221,.14)}`)}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
 button,input,select{font:inherit;color:inherit}
@@ -176,6 +176,7 @@ export class Panel {
     this.root = this.host.attachShadow({ mode: 'open' });
     this.root.innerHTML = this.template();
     this.settings = settings;
+    this.host.dataset.theme = settings.theme;
     this.wire();
     this.renderSettings();
     this.renderStatus();
@@ -213,6 +214,7 @@ export class Panel {
 
   setSettings(s: Settings) {
     this.settings = s;
+    this.host.dataset.theme = s.theme;
     (this.$('#ll-auto') as HTMLInputElement).checked = s.auto;
     for (const input of this.root.querySelectorAll<HTMLInputElement>('.seg input')) {
       input.checked = (s as any)[input.name] === input.value;
@@ -280,12 +282,14 @@ export class Panel {
     const t = gameTheme(this.game);
     this.$('.settings-title').textContent = `${this.game ? t.name : 'Game'} settings`;
     const list = (this.game && GAME_SETTINGS[this.game]) || [];
-    this.$('.game-settings').innerHTML = list.length
-      ? list.map((s) => `<fieldset><legend>${esc(s.label)} <span class="sub">${esc(s.hint)}</span></legend><div class="seg">${
+    const field = (s: { key: string; label: string; hint: string; options: { value: string; label: string }[] }) =>
+      `<fieldset><legend>${esc(s.label)} <span class="sub">${esc(s.hint)}</span></legend><div class="seg">${
         s.options.map((o) => `<label><input type="radio" name="${s.key}" value="${esc(o.value)}"${
           (this.settings as any)[s.key] === o.value ? ' checked' : ''}><span>${esc(o.label)}</span></label>`).join('')
-      }</div></fieldset>`).join('')
-      : `<p class="none">Nothing to tune for ${esc(t.name)}: it just works.</p>`;
+      }</div></fieldset>`;
+    this.$('.game-settings').innerHTML = (list.length
+      ? list.map(field).join('')
+      : `<p class="none">Nothing to tune for ${esc(t.name)}: it just works.</p>`) + field(THEME_SETTING);
   }
 
   private renderStatus() {

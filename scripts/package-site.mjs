@@ -7,14 +7,20 @@
 //    top-level "larpedin/" folder so unzipping gives one folder to load
 // 3. zips dist/firefox/ into site/downloads/larpedin-firefox.zip
 // 4. copies the userscript to site/downloads/larpedin.user.js
-// 5. writes site/downloads/latest.json { name, version, file, size, sha256, ... }
-//    which the page reads to show "v1.0.0 · 45 KB".
+// 5. copies the toolbar icon to site/downloads/icon-128.png (the userscript's @icon)
+// 6. if site/downloads/larpedin.xpi exists (npm run sign:firefox, or the CI step), writes
+//    firefox-updates.json next to it
+// 7. writes site/downloads/latest.json, the contract with the website:
+//      { name, version, file, size, sha256, userscript: { file, size },
+//        xpi?: { file, size, version }, built }
+//    which the page reads to show "v1.1.0, 45 KB".
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeUpdateManifest } from './xpi.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extDir = join(root, 'dist', 'extension');
@@ -59,6 +65,11 @@ if (userscripts.length) {
   userscript = { file: USERSCRIPT, size: statSync(join(outDir, USERSCRIPT)).size };
 }
 
+cpSync(join(root, 'src', 'extension', 'icons', 'icon-128.png'), join(outDir, 'icon-128.png'));
+
+// Signed Firefox add-on, when one has been made for this site build.
+const xpi = writeUpdateManifest(outDir);
+
 const buf = readFileSync(zipPath);
 const latest = {
   name: 'LarpedIn',
@@ -67,8 +78,9 @@ const latest = {
   size: buf.length,
   sha256: createHash('sha256').update(buf).digest('hex'),
   userscript,
+  ...(xpi ? { xpi } : {}),
   built: new Date().toISOString(),
 };
 writeFileSync(join(outDir, 'latest.json'), JSON.stringify(latest, null, 2) + '\n');
 
-console.log(`package-site: site/downloads/${ZIP} v${latest.version} ${(latest.size / 1024).toFixed(1)} KB sha256 ${latest.sha256.slice(0, 12)}…`);
+console.log(`package-site: site/downloads/${ZIP} v${latest.version} ${(latest.size / 1024).toFixed(1)} KB sha256 ${latest.sha256.slice(0, 12)}...${xpi ? `, signed XPI v${xpi.version}` : ', no signed XPI yet (npm run sign:firefox)'}`);

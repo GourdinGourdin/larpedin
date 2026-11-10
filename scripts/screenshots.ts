@@ -63,7 +63,7 @@ function mockGame(game: string, kind: 'queens' | 'broken' | 'empty'): string {
 
 const CHROME_STUB = (status: unknown, settings: unknown, send = `async () => (${JSON.stringify(status)})`) => `
   window.chrome = {
-    runtime: { getManifest: () => ({ version: '1.0.0' }), openOptionsPage() {}, getURL: (p) => p },
+    runtime: { getManifest: () => ({ version: '1.1.0' }), openOptionsPage() {}, getURL: (p) => p },
     storage: { sync: { get: async () => ({ settings: ${JSON.stringify(settings)} }), set: async () => {} }, onChanged: { addListener() {} } },
     tabs: { query: async () => [{ id: 1 }], sendMessage: ${send}, create() {}, update() {} },
     commands: { getAll: async () => [{ name: 'solve', shortcut: 'Alt+S' }] },

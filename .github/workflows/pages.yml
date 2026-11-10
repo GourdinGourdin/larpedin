@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # lets the signing step keep the signed XPI as a GitHub release asset
   pages: write
   id-token: write
 
@@ -26,6 +26,36 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+
+      # Self-hosted, signed Firefox add-on (one-click install without an AMO listing).
+      # Runs only when the repo secrets AMO_JWT_ISSUER and AMO_JWT_SECRET exist.
+      # Mozilla refuses to sign the same version twice, and Pages rebuilds the
+      # whole site on every push, so each signed XPI is kept as a release asset
+      # (tag xpi-v<version>): signed once, then downloaded on later runs.
+      # Unlike an Actions cache it cannot be evicted, and unlike committing the
+      # binary it does not grow the repo. To ship a new XPI, bump package.json's version.
+      - name: Signed Firefox add-on
+        continue-on-error: true   # an AMO hiccup must not block the site deploy
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$AMO_JWT_ISSUER" ] || [ -z "$AMO_JWT_SECRET" ]; then
+            echo "AMO_JWT_ISSUER / AMO_JWT_SECRET not set: skipping the signed Firefox add-on."
+            exit 0
+          fi
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="xpi-v$VERSION"
+          mkdir -p site/downloads
+          if gh release download "$TAG" --pattern larpedin.xpi --dir site/downloads; then
+            echo "Reusing the signed XPI for $VERSION."
+          else
+            npm run build
+            npm run sign:firefox
+            gh release create "$TAG" site/downloads/larpedin.xpi --title "Signed Firefox add-on $VERSION" \
+              --notes "Mozilla-signed XPI (unlisted channel), served from the site for one-click install."
+          fi
       - run: npm run site:build
       - name: Leave out dev-only files
         run: rsync -a --exclude dev --exclude screenshots --exclude README.md --exclude .gitignore site/ _site/

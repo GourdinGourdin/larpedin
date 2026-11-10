@@ -3,7 +3,7 @@
 import { GAMEDIN_URL, gamedinMarkSvg } from '../page/theme.ts';
 import { sanitizeSettings, type Settings } from '../page/settings.ts';
 import {
-  gameList, getSettings, injectTheme, kbdHtml, canChangeShortcut, openShortcutSettings, patchSettings, settingsFieldsHtml, solveShortcut,
+  applyTheme, gameList, getSettings, injectTheme, kbdHtml, canChangeShortcut, openShortcutSettings, patchSettings, settingsFieldsHtml, solveShortcut,
 } from './common.ts';
 
 injectTheme();
@@ -26,6 +26,8 @@ function flashSaved() {
 
 function render(s: Settings) {
   $<HTMLInputElement>('auto').checked = s.auto;
+  applyTheme(s.theme);
+  for (const r of document.querySelectorAll<HTMLInputElement>('input[name="theme"]')) r.checked = r.value === s.theme;
   $('game-settings').innerHTML = settingsFieldsHtml(s);
 }
 
@@ -35,10 +37,12 @@ chrome.storage.onChanged.addListener((ch, area) => {
 });
 
 $('auto').addEventListener('change', (e) => patchSettings({ auto: (e.target as HTMLInputElement).checked }).then(flashSaved));
-$('game-settings').addEventListener('change', (e) => {
+function onRadio(e: Event) {
   const t = e.target as HTMLInputElement;
   if (t.type === 'radio') patchSettings({ [t.name]: t.value } as Partial<Settings>).then(flashSaved);
-});
+}
+$('game-settings').addEventListener('change', onRadio);
+$('appearance').addEventListener('change', onRadio);
 
 solveShortcut().then((s) => {
   $('shortcut').innerHTML = kbdHtml(s);
