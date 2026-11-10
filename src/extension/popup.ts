@@ -55,7 +55,7 @@ function renderStatus(status: Status | null, reachable: boolean) {
     case 'done':
       title.textContent = `${name} solved`;
       detail.textContent = status!.timings
-        ? `Read ${fmtMs(status!.timings.read)} · solve ${fmtMs(status!.timings.solve)} · play ${fmtMs(status!.timings.play)}`
+        ? `Read ${fmtMs(status!.timings.read)}, solve ${fmtMs(status!.timings.solve)}, play ${fmtMs(status!.timings.play)}`
         : status!.message ?? '';
       break;
     case 'error':

@@ -4,10 +4,23 @@
 // Plain data in, string out: safe to run in Node.
 import { BASE, GAME_THEME } from '../page/theme.ts';
 
-const P = { cell: BASE.light.surface2, ink: BASE.light.ink, dim: BASE.light.muted, card: BASE.light.surface };
-const G = Object.fromEntries(Object.entries(GAME_THEME).map(([k, v]) => [k, v.accent])) as Record<keyof typeof GAME_THEME, string>;
-const SUN = '#E39A2D';
-const FONT = 'ui-rounded, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+export type Mode = 'light' | 'dark';
+// Colours come from theme.ts (the one palette). `use()` switches the module to light or dark before drawing.
+const accents = (m: Mode) => Object.fromEntries(Object.entries(GAME_THEME).map(([k, v]) => [k, m === 'dark' ? v.accentDark : v.accent])) as Record<keyof typeof GAME_THEME, string>;
+// Tiles sit on a card (surface), so light tiles use the page cream to stay visible.
+let P: Record<'cell' | 'given' | 'ink' | 'onInk' | 'card' | 'onAccent', string> = { cell: BASE.light.bg, given: BASE.light.cell2, ink: BASE.light.ink, onInk: BASE.light.bg, card: BASE.light.surface, onAccent: '#FFFFFF' };
+let G = accents('light');
+let SUN = '#F2A414';
+let dark = false;
+// Pairs' sun disc is the same orange on both sites; the dark board uses GamedIn's dark sun.
+function use(m: Mode) {
+  dark = m === 'dark';
+  const B = BASE[m];
+  P = { cell: dark ? B.cell : B.bg, given: B.cell2, ink: B.ink, onInk: B.bg, card: B.surface, onAccent: dark ? BASE.dark.bg : '#FFFFFF' };
+  G = accents(m);
+  SUN = dark ? '#F6B53A' : '#F2A414';
+}
+const FONT = "'Schibsted Grotesk Variable', 'Schibsted Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 const SIZE = 400;
 
 export interface ArtData {
@@ -56,25 +69,28 @@ export function zipSvg(z: ArtData['zip']) {
   }
   for (const [c, s] of Object.entries(z.numbers)) {
     const [x, y] = center(N, +c);
-    b += `<circle cx="${x}" cy="${y}" r="${f(cs * 0.28)}" fill="${P.ink}"/>` + text(x, y, cs * 0.3, '#fff', String(s + 1));
+    b += `<circle cx="${x}" cy="${y}" r="${f(cs * 0.28)}" fill="${P.ink}"/>` + text(x, y, cs * 0.3, P.onInk, String(s + 1));
   }
   return svg('Zip: one path through every cell, numbers in order', b);
 }
 
-const QCOL = ['#F2C6B4', '#F4DFA6', '#CFE3BE', '#BFD9E4', '#D9CBEA', '#F0C9D8', '#D8D2C2', '#F5D3B3', '#C9DDD6', '#E3D3C4'];
+// GamedIn's region colours (--r0.. in its styles.css, light and dark), so a board reads like a Crowns one.
+const QCOL_LIGHT = ['#BBA3E2', '#B3DFA0', '#FFC992', '#96BEFF', '#DFDFDF', '#FF7B60', '#E6F388', '#B9B29E', '#DFA0BF', '#95CBCF'];
+const QCOL_DARK = ['#A08CC2', '#99BF89', '#DBAC7D', '#81A3DB', '#BFBFBF', '#DB6952', '#C5D074', '#9F9987', '#BF89A4', '#80AEB2'];
 function crown(cx: number, cy: number, s: number, color: string) {
   const p = [[-s, s * 0.55], [-s, -s * 0.35], [-s * 0.5, s * 0.05], [0, -s * 0.7], [s * 0.5, s * 0.05], [s, -s * 0.35], [s, s * 0.55]];
   return `<path d="${p.map(([x, y], i) => `${i ? 'L' : 'M'}${f(cx + x)} ${f(cy + y)}`).join(' ')} Z" fill="${color}" stroke="${color}" stroke-width="${f(s * 0.16)}" stroke-linejoin="round"/>`;
 }
 export function queensSvg(q: ArtData['queens']) {
   const N = q.size, cs = SIZE / N;
+  const QCOL = dark ? QCOL_DARK : QCOL_LIGHT;
   let b = tiles(N, (i) => QCOL[q.regions[i] % QCOL.length]);
-  q.cols.forEach((c, r) => { const [x, y] = center(N, r * N + c); b += crown(x, y + cs * 0.04, cs * 0.3, G.queens); });
+  q.cols.forEach((c, r) => { const [x, y] = center(N, r * N + c); b += crown(x, y + cs * 0.04, cs * 0.3, dark ? '#1E1914' : '#231E18'); });
   return svg('Queens: one queen per row, column and colour region', b);
 }
 
 export function tangoSvg(t: ArtData['tango']) {
-  const N = t.size, cs = SIZE / N, given = mix(P.cell, P.ink, 0.08);
+  const N = t.size, cs = SIZE / N, given = P.given;
   let b = tiles(N, (i) => (i in t.given ? given : P.cell));
   t.solution.forEach((v, i) => {
     const [x, y] = center(N, i), r = f(cs * 0.26);
@@ -87,14 +103,14 @@ export function tangoSvg(t: ArtData['tango']) {
   });
   for (const [a, c, kind] of t.edges) {
     const [ax, ay] = center(N, a), [bx, by] = center(N, c), mx = f((ax + bx) / 2), my = f((ay + by) / 2);
-    b += `<circle cx="${mx}" cy="${my}" r="${f(cs * 0.21)}" fill="${P.card}" stroke="${P.cell}" stroke-width="2"/>` + text(mx, my - cs * 0.01, cs * 0.32, P.ink, kind === '=' ? '=' : '×');
+    b += `<circle cx="${mx}" cy="${my}" r="${f(cs * 0.21)}" fill="${P.card}" stroke="${P.given}" stroke-width="2"/>` + text(mx, my - cs * 0.01, cs * 0.32, P.ink, kind === '=' ? '=' : '×');
   }
   return svg('Tango: balanced suns and moons, following the = and × clues', b);
 }
 
 export function patchesSvg(p: ArtData['patches']) {
   const N = p.cols, cs = SIZE / N;
-  const shades = [0, 0.38, 0.16, 0.52, 0.26, 0.45, 0.08, 0.6].map((k, i) => (i % 2 ? mix(G.patches, '#FFFFFF', k) : mix(G.patches, P.ink, k * 0.45)));
+  const shades = [0, 0.38, 0.16, 0.52, 0.26, 0.45, 0.08, 0.6].map((k, i) => (i % 2 ? mix(G.patches, '#FFFFFF', k) : mix(G.patches, dark ? BASE.dark.bg : BASE.light.ink, k * 0.45)));
   let b = tiles(N);
   p.rects.forEach(([t, l, h, w], i) => {
     b += `<rect x="${f(l * cs + 4)}" y="${f(t * cs + 4)}" width="${f(w * cs - 8)}" height="${f(h * cs - 8)}" rx="${f(cs * 0.18)}" fill="${shades[i % shades.length]}"/>`;
@@ -102,8 +118,8 @@ export function patchesSvg(p: ArtData['patches']) {
   for (const c of p.clues) {
     const [x, y] = center(N, c.cell), s = cs * 0.5;
     const w = c.shape === 'VERTICAL' ? s * 0.62 : s, h = c.shape === 'HORIZONTAL' ? s * 0.62 : s;
-    b += `<rect x="${f(x - w / 2)}" y="${f(y - h / 2)}" width="${f(w)}" height="${f(h)}" rx="5" fill="${P.card}"/>`;
-    if (c.size) b += text(x, y, cs * 0.3, P.ink, String(c.size));
+    b += `<rect x="${f(x - w / 2)}" y="${f(y - h / 2)}" width="${f(w)}" height="${f(h)}" rx="5" fill="${BASE.light.surface}"/>`;
+    if (c.size) b += text(x, y, cs * 0.3, BASE.light.ink, String(c.size));
   }
   return svg('Patches: rectangles that match each clue', b);
 }
@@ -112,13 +128,14 @@ export function wendSvg(w: ArtData['wend']) {
   const N = w.size, cs = SIZE / N;
   let b = tiles(N);
   w.words.forEach(({ cells }, i) => {
-    const col = mix(G.wend, P.ink, [0, 0.18, 0.06, 0.26][i % 4]);
+    const col = mix(G.wend, dark ? '#FFFFFF' : BASE.light.ink, [0, 0.18, 0.06, 0.26][i % 4] * (dark ? 0.5 : 1));
     b += `<path d="${pathD(N, cells)}" fill="none" stroke="${col}" stroke-width="${f(cs * 0.74)}" stroke-linecap="round" stroke-linejoin="round"/>`;
   });
-  w.letters.forEach((L, i) => { if (L) { const [x, y] = center(N, i); b += text(x, y, cs * 0.36, '#fff', L); } });
+  w.letters.forEach((L, i) => { if (L) { const [x, y] = center(N, i); b += text(x, y, cs * 0.36, P.onAccent, L); } });
   return svg(`Wend: the words ${w.words.map((x) => x.word).join(', ')} snaking through the grid`, b);
 }
 
-export function allBoards(d: ArtData) {
+export function allBoards(d: ArtData, mode: Mode = 'light') {
+  use(mode);
   return { zip: zipSvg(d.zip), queens: queensSvg(d.queens), tango: tangoSvg(d.tango), patches: patchesSvg(d.patches), wend: wendSvg(d.wend) };
 }

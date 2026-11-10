@@ -9,22 +9,22 @@
 <style>
   .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 64px; display: flex; flex-direction: column; gap: 40px; }
   .hero { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
-  .hero h1 { font-size: 34px; line-height: 1.15; letter-spacing: -.02em; }
+  .hero h1 { font-size: 34px; line-height: 1.1; letter-spacing: -.035em; font-weight: 800; }
   .hero p { font-size: 17px; color: var(--ll-muted); max-width: 560px; }
   .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px;
-    border-radius: 999px; background: var(--ll-surface2); border: 1px solid var(--ll-border); color: var(--ll-muted); }
+    border-radius: 12px; background: var(--ll-surface2); border: 1px solid var(--ll-border); color: var(--ll-muted); }
   section > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ll-muted); margin-bottom: 14px; }
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .step { padding: 18px; display: flex; flex-direction: column; gap: 6px; }
   .step .n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700;
     background: var(--ll-ink); color: var(--ll-surface); font-size: 14px; margin-bottom: 4px; }
-  .step h3 { font-size: 16px; }
+  .step h3 { font-size: 16px; font-weight: 800; letter-spacing: -.025em; }
   .step p { color: var(--ll-muted); font-size: 14px; }
   .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
   .game { padding: 16px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; }
   .game:hover { box-shadow: 0 0 0 1px var(--acc); }
-  .game h3 { font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
-  .game h3 .open { font-size: 12px; font-weight: 600; color: var(--acc); }
+  .game h3 { font-size: 16px; font-weight: 800; letter-spacing: -.025em; display: flex; align-items: center; justify-content: space-between; }
+  .game h3 .open { font-size: 12px; font-weight: 600; color: var(--acc-ink); }
   .game p { font-size: 14px; color: var(--ll-muted); }
   .settings { padding: 8px 20px; }
   .settings > * { padding: 16px 0; }
@@ -33,6 +33,14 @@
   .kbd-row .right { display: flex; align-items: center; gap: 10px; }
   .saved { font-size: 12px; color: var(--ll-success); opacity: 0; transition: opacity .2s; }
   .saved.on { opacity: 1; }
+  .promo { display: flex; align-items: center; gap: 12px; padding: 14px 18px; text-decoration: none; }
+  .promo .gm { flex: none; display: block; line-height: 0; }
+  .promo .gm svg { display: block; border-radius: 25%; }
+  .promo .txt { flex: 1; font-size: 14px; color: var(--ll-muted); }
+  .promo b { color: var(--ll-ink); }
+  .promo .open { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 650; white-space: nowrap; color: var(--ll-ink); }
+  .promo:hover { box-shadow: 0 0 0 1.5px var(--ll-ink); }
+  @media (prefers-color-scheme: dark) { .promo .gm svg { box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); } }
   .notes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .note { padding: 18px; display: flex; flex-direction: column; gap: 6px; }
   .note h3 { font-size: 15px; }
@@ -87,6 +95,12 @@
     <div class="card note"><h3>Private by design</h3><p>Everything runs in your browser. No account, no servers, no analytics. Puzzles you open are kept in this browser so you can export them from the card's settings.</p></div>
     <div class="card note"><h3>If something looks off</h3><p>Reload the LinkedIn tab once after installing. If a solve fails, the card shows why and offers <b>Copy debug info</b> for a bug report.</p></div>
   </section>
+
+  <a class="card promo" id="gamedin" href="#" target="_blank" rel="noopener">
+    <span class="gm"></span>
+    <span class="txt"><b>Want more than one a day?</b> GamedIn has five more puzzles with no daily limit.</span>
+    <span class="open">Play GamedIn <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 4H5.5A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16h9a1.5 1.5 0 0 0 1.5-1.5V12M11 4h5v5M16 4l-7 7"/></svg></span>
+  </a>
 
   <footer>LarpedIn <span id="ver"></span> is an independent fan project. It is not affiliated with, endorsed by or connected to LinkedIn Corporation. LinkedIn and the game names belong to their owners.</footer>
 </div>

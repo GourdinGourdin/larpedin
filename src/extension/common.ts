@@ -6,11 +6,11 @@ import { DEFAULT_SETTINGS, GAME_SETTINGS, sanitizeSettings, type Settings } from
 /** Inject the palette as CSS variables (--ll-*) and per-game accent classes. */
 export function injectTheme() {
   const games = Object.entries(GAME_THEME as Record<string, GameTheme>)
-    .map(([id, t]) => `.g-${id}{--acc:${t.accent}}@media (prefers-color-scheme:dark){.g-${id}{--acc:${t.accentDark}}}`)
+    .map(([id, t]) => `.g-${id}{--acc:${t.accent};--on-acc:${t.onAccent};--acc-ink:${t.ink}}@media (prefers-color-scheme:dark){.g-${id}{--acc:${t.accentDark};--on-acc:${BASE.dark.bg};--acc-ink:${t.accentDark}}}`)
     .join('');
   const style = document.createElement('style');
   style.textContent = baseCssVars(':root') +
-    `:root{--acc:${BASE.light.ink};--on-acc:#fff}@media (prefers-color-scheme:dark){:root{--acc:${GAME_THEME.zip.accentDark};--on-acc:#1F1B17}}` +
+    `:root{--acc:${BASE.light.ink};--on-acc:${BASE.light.bg};--acc-ink:${BASE.light.ink}}@media (prefers-color-scheme:dark){:root{--acc:${GAME_THEME.zip.accentDark};--on-acc:${BASE.dark.bg};--acc-ink:${GAME_THEME.zip.accentDark}}}` +
     games;
   document.head.prepend(style);
   for (const el of document.querySelectorAll<HTMLElement>('[data-mark]')) el.innerHTML = markSvg(+el.dataset.mark! || 32);
@@ -74,7 +74,7 @@ export function settingsFieldsHtml(s: Settings, onlyGame?: string): string {
     .filter(([g]) => !onlyGame || g === onlyGame)
     .flatMap(([g, list]) => list.map((def) => {
       const t = (GAME_THEME as Record<string, GameTheme>)[g];
-      return `<fieldset class="field g-${g}"><legend><span class="dot"></span>${esc(t?.name ?? g)} · ${esc(def.label)}` +
+      return `<fieldset class="field g-${g}"><legend><span class="dot"></span>${esc(t?.name ?? g)}: ${esc(def.label)}` +
         `<span class="sub">${esc(def.hint)}</span></legend><div class="seg">` +
         def.options.map((o) => `<label><input type="radio" name="${def.key}" value="${esc(o.value)}"${
           (s as any)[def.key] === o.value ? ' checked' : ''}><span>${esc(o.label)}</span></label>`).join('') +

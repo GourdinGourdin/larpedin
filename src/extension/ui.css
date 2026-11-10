@@ -13,16 +13,17 @@ a { color: inherit; }
 button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus { outline: none; }
-:focus-visible { outline: 2px solid var(--ll-focus); outline-offset: 2px; border-radius: 8px; }
+:focus-visible { outline: 2.5px solid var(--ll-focus); outline-offset: 2px; border-radius: 8px; }
 h1, h2, h3, p { margin: 0; }
 
 .mark svg { display: block; }
-@media (prefers-color-scheme: dark) { .mark svg rect { stroke: #4A423A; stroke-width: 2; } }
+@media (prefers-color-scheme: dark) { .mark svg { border-radius: 25%; box-shadow: 0 0 0 1px rgba(243, 235, 221, .14); } }
 .sub { display: block; font-size: 12px; font-weight: 400; color: var(--ll-muted); }
 .muted { color: var(--ll-muted); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); flex: none; }
 
-.card { background: var(--ll-surface); border: 1px solid var(--ll-border); border-radius: 14px; }
+.card { background: var(--ll-surface); border-radius: 22px; box-shadow: 0 1px 0 rgba(35, 30, 24, .06), inset 0 0 0 1px var(--ll-border); }
+@media (prefers-color-scheme: dark) { .card { box-shadow: 0 1px 0 rgba(0, 0, 0, .35), inset 0 0 0 1px var(--ll-border); } }
 
 kbd {
   display: inline-block; font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -32,14 +33,14 @@ kbd {
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 40px; padding: 0 16px; border: 0; border-radius: 10px;
-  background: var(--acc); color: var(--on-acc); font-weight: 700; text-decoration: none;
+  height: 44px; padding: 0 18px; border: 0; border-radius: 14px;
+  background: var(--acc); color: var(--on-acc); font-weight: 650; text-decoration: none;
 }
 .btn:hover { filter: brightness(1.08); }
 .btn[disabled] { opacity: .5; cursor: not-allowed; filter: none; }
 .ghost {
   display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
-  border-radius: 8px; border: 1px solid var(--ll-border); background: var(--ll-surface);
+  border-radius: 12px; border: 1px solid var(--ll-border); background: var(--ll-surface);
   font-size: 13px; font-weight: 600; text-decoration: none;
 }
 .ghost:hover { background: var(--ll-surface2); }

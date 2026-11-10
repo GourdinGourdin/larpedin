@@ -1,5 +1,6 @@
 /// <reference types="chrome" />
 // Welcome page (opened on install) that doubles as the options page.
+import { GAMEDIN_URL, gamedinMarkSvg } from '../page/theme.ts';
 import { sanitizeSettings, type Settings } from '../page/settings.ts';
 import {
   gameList, getSettings, injectTheme, kbdHtml, canChangeShortcut, openShortcutSettings, patchSettings, settingsFieldsHtml, solveShortcut,
@@ -12,6 +13,9 @@ $('ver').textContent = `v${chrome.runtime.getManifest().version}`;
 $('games').innerHTML = gameList().map(([id, t]) =>
   `<a class="card game g-${id}" href="${t.url}" target="_blank" rel="noopener">` +
   `<h3>${t.name}<span class="open">Open ↗</span></h3><p>${t.blurb}</p></a>`).join('');
+
+$<HTMLAnchorElement>('gamedin').href = GAMEDIN_URL;
+$('gamedin').querySelector('.gm')!.innerHTML = gamedinMarkSvg(36);
 
 let savedTimer = 0;
 function flashSaved() {

@@ -9,8 +9,10 @@ import { markSvg } from '../src/page/theme.ts';
 const js = readFileSync('video/data.js', 'utf8');
 const data = JSON.parse(js.slice(js.indexOf('{'), js.lastIndexOf('}') + 1)) as ArtData;
 mkdirSync('site/assets/games', { recursive: true });
-for (const [game, svg] of Object.entries(allBoards(data))) {
-  writeFileSync(`site/assets/games/${game}.svg`, svg);
-  console.log(`site/assets/games/${game}.svg ${(svg.length / 1024).toFixed(1)} KB`);
+for (const [mode, suffix] of [['light', ''], ['dark', '-dark']] as const) {
+  for (const [game, svg] of Object.entries(allBoards(data, mode))) {
+    writeFileSync(`site/assets/games/${game}${suffix}.svg`, svg);
+    console.log(`site/assets/games/${game}${suffix}.svg ${(svg.length / 1024).toFixed(1)} KB`);
+  }
 }
 writeFileSync('site/assets/icon.svg', markSvg(128, 'LarpedIn'));

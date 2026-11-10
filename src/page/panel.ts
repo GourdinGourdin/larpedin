@@ -1,7 +1,7 @@
 // The in-page floating card. Lives in a Shadow DOM so LinkedIn's CSS can't
 // reach it (and ours can't leak out); it is position:fixed, so it never
 // shifts the page layout. Draggable by its header; collapses to a pill.
-import { BRAND, baseCssVars, gameTheme, markSvg } from './theme.ts';
+import { BASE, BRAND, BRAND_ACCENT, baseCssVars, gameTheme, markSvg } from './theme.ts';
 import { GAME_SETTINGS, fmtMs, type Settings, type Status, type Phase } from './settings.ts';
 
 export interface PanelHandlers {
@@ -45,20 +45,21 @@ const ICON = {
 const CSS = `
 ${baseCssVars(':host')}
 :host{
-  --acc:var(--acc-l);--on-acc:#fff;
+  --acc-l:${BRAND_ACCENT.accent};--acc-d:${BRAND_ACCENT.accentDark};--on-acc-l:${BASE.light.bg};--acc-ink-l:${BRAND_ACCENT.ink};
+  --acc:var(--acc-l);--on-acc:var(--on-acc-l);--acc-ink:var(--acc-ink-l);
   --acc-soft:color-mix(in srgb,var(--acc) 12%,var(--ll-surface));
-  --radius:14px;
+  --radius:22px;
   all:initial;position:fixed;z-index:2147483000;display:block;
   font:13px/1.4 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
   color:var(--ll-ink);-webkit-font-smoothing:antialiased;
 }
-@media (prefers-color-scheme:dark){:host{--acc:var(--acc-d);--on-acc:#1F1B17}.mark svg rect{stroke:#4A423A;stroke-width:2}}
+@media (prefers-color-scheme:dark){:host{--acc:var(--acc-d);--on-acc:${BASE.dark.bg};--acc-ink:var(--acc-d)}.mark svg{border-radius:25%;box-shadow:0 0 0 1px rgba(243,235,221,.14)}}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus{outline:none}
-:focus-visible{outline:2px solid var(--ll-focus);outline-offset:2px;border-radius:8px}
+:focus-visible{outline:2.5px solid var(--ll-focus);outline-offset:2px;border-radius:8px}
 
 .card{width:280px;background:var(--ll-surface);border:1px solid var(--ll-border);border-radius:var(--radius);
   box-shadow:var(--ll-shadow);overflow:hidden;position:relative}
@@ -73,11 +74,11 @@ button{cursor:pointer}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);flex:none}
 .icon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;border:0;background:transparent;color:var(--ll-muted)}
 .icon:hover{background:var(--ll-surface2);color:var(--ll-ink)}
-.icon[aria-expanded="true"]{background:var(--acc-soft);color:var(--acc)}
+.icon[aria-expanded="true"]{background:var(--acc-soft);color:var(--acc-ink)}
 
 .body{padding:0 12px 12px;display:flex;flex-direction:column;gap:10px}
 
-.status{background:var(--ll-surface2);border-radius:10px;padding:10px}
+.status{background:var(--ll-surface2);border-radius:14px;padding:10px}
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}
 .step{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--ll-muted);font-weight:600;letter-spacing:.02em;text-transform:uppercase}
 .bar{height:4px;border-radius:2px;background:var(--ll-border);overflow:hidden;position:relative}
@@ -102,12 +103,12 @@ button{cursor:pointer}
 
 .err-actions{display:flex;gap:6px;margin-top:8px}
 
-.solve{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;border:0;border-radius:10px;
+.solve{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;border:0;border-radius:12px;
   background:var(--acc);color:var(--on-acc);font-weight:700;font-size:14px;transition:filter .15s,transform .05s}
 .solve:hover{filter:brightness(1.08)}
 .solve:active{transform:translateY(1px)}
 .solve[aria-disabled="true"]{cursor:progress;filter:none;opacity:.92}
-.solve:focus-visible{outline-offset:3px;border-radius:10px}
+.solve:focus-visible{outline-offset:3px;border-radius:12px}
 kbd{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;padding:3px 5px;border-radius:5px;
   background:color-mix(in srgb,var(--on-acc) 18%,transparent);color:inherit}
 
@@ -142,10 +143,10 @@ legend .sub{font-weight:400;margin-top:1px}
 .ghost:hover{background:var(--ll-surface2)}
 .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px 8px;font-size:11px;color:var(--ll-muted)}
 
-.pill{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 6px;border-radius:20px;border:1px solid var(--ll-border);
+.pill{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 6px;border-radius:14px;border:1px solid var(--ll-border);
   background:var(--ll-surface);box-shadow:var(--ll-shadow);font-weight:600;font-size:13px;cursor:pointer;touch-action:none;user-select:none}
 .pill .mark{width:28px;height:28px}
-.pill:focus-visible{border-radius:20px}
+.pill:focus-visible{border-radius:14px}
 .pill .state{width:8px;height:8px;border-radius:50%;background:var(--acc)}
 .pill[data-phase="reading"] .state,.pill[data-phase="solving"] .state,.pill[data-phase="playing"] .state{animation:blink .8s ease-in-out infinite alternate}
 .pill[data-phase="done"] .state{background:var(--ll-success)}
@@ -203,6 +204,8 @@ export class Panel {
     const t = gameTheme(id);
     this.host.style.setProperty('--acc-l', t.accent);
     this.host.style.setProperty('--acc-d', t.accentDark);
+    this.host.style.setProperty('--on-acc-l', t.onAccent);
+    this.host.style.setProperty('--acc-ink-l', t.ink);
     this.$('.game-name').textContent = id ? t.name : 'No puzzle on this page';
     this.$('.pill-name').textContent = id ? t.name : 'LarpedIn';
     this.renderSettings();
